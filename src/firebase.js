@@ -5,12 +5,12 @@ import { getStorage } from "firebase/storage"; // 1. Import getStorage
 
 const firebaseConfig = {
     // ... your config object remains the same
-    apiKey: "AIzaSyAYd9WjzNp4RQK9oPX31gCBdbfCHcsRVb4",
-    authDomain: "roommatefinder-259c8.firebaseapp.com",
-    projectId: "roommatefinder-259c8",
-    storageBucket: "roommatefinder-259c8.firebasestorage.app",
-    messagingSenderId: "104872560630",
-    appId: "1:104872560630:web:11f285546f36d5439069d7"
+    apiKey: import.meta.VITE_API_KEY,
+    authDomain: import.meta.VITE_AUTH_DOMAIN,
+    projectId: import.meta.VITE_PROJECT_ID,
+    storageBucket: import.meta.VITE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.VITE_MESSAGING_SENDER_ID,
+    appId: import.meta.VITE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);
