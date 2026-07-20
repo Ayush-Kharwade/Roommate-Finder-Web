@@ -1,8 +1,8 @@
 // src/components/Login.jsx
 import React, { useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -10,6 +10,8 @@ function Login() {
   const [error, setError] = useState('');
   const auth = getAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -17,12 +19,7 @@ function Login() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       toast.success('Successfully logged in!');
-      // Add a timeout to delay navigation
-      setTimeout(() => {
-        navigate('/');
-      }, 1200); // 1.2 second delay
-
-      navigate('/'); // Redirect to homepage after login
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.message);
       toast.error('Failed to log in.');

@@ -21,6 +21,7 @@ import NotFound from './components/NotFound';
 import AddSeekerProfile from './components/AddSeekerProfile.jsx';
 import SeekerDetails from './components/SeekerDetails.jsx';
 import ListingChoice from './components/ListingChoice.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 function App() {
   const [properties, setProperties] = useState([]);
@@ -99,23 +100,23 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar user={user} />
+      <Navbar user={user} userProfile={userProfile} />
       <Toaster position="top-center" />
       <Routes>
         <Route path="/" element={<Home properties={properties} user={user} />} />
-        {/* 5. PASS 'seekers' PROP TO ALLLISTINGS */}
         <Route path="/listings" element={<AllListings properties={properties} seekers={seekers} user={user} userProfile={userProfile} />} />
         <Route path="/property/:id" element={<PropertyDetails properties={properties} user={user} />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/add-listing" element={<AddListing />} />
-        <Route path="/edit-listing/:id" element={<EditListing />} />
-        <Route path="/profile/:userId" element={<Profile />} />
-        <Route path="/preferences" element={<Preferences />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/add-seeker-profile" element={<AddSeekerProfile />} /> 
         <Route path="/seeker/:id" element={<SeekerDetails  user={user} />} />
-        <Route path="/listing-choice" element={<ListingChoice />} />
+        
+        <Route path="/add-listing" element={<ProtectedRoute user={user}><AddListing /></ProtectedRoute>} />
+        <Route path="/edit-listing/:id" element={<ProtectedRoute user={user}><EditListing /></ProtectedRoute>} />
+        <Route path="/add-seeker-profile" element={<ProtectedRoute user={user}><AddSeekerProfile /></ProtectedRoute>} />
+        <Route path="/listing-choice" element={<ProtectedRoute user={user}><ListingChoice /></ProtectedRoute>} />
+        <Route path="/preferences" element={<ProtectedRoute user={user}><Preferences /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute user={user}><Notifications /></ProtectedRoute>} />
+        <Route path="/profile/:userId" element={<ProtectedRoute user={user}><Profile /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />

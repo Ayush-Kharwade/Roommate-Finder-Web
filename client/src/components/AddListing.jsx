@@ -109,7 +109,7 @@ function AddListing() {
         }
         
         setIsLoading(true);
-        toast.info("Image uploads are currently paused pending billing setup. Proceeding without images.");
+        toast("Image uploads are currently paused pending billing setup. Proceeding without images.");
 
         // Geocode the address to get coordinates
         const OPENCAGE_API_KEY = import.meta.env.VITE_OPENCAGE_API_KEY;
