@@ -12,29 +12,6 @@ const FeatureCard = ({ icon, title, description }) => (
   </div>
 );
 
-// Enhanced Testimonial Card with avatar
-const TestimonialCard = ({ quote, name, city, avatar }) => (
-  <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-    <div className="flex items-center mb-4">
-      {[...Array(5)].map((_, i) => (
-        <svg key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      ))}
-    </div>
-    <p className="text-gray-700 italic leading-relaxed">"{quote}"</p>
-    <div className="flex items-center mt-6">
-      <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-        {avatar}
-      </div>
-      <div className="ml-4 text-left">
-        <p className="font-bold text-gray-900">{name}</p>
-        <p className="text-sm text-gray-500">{city}</p>
-      </div>
-    </div>
-  </div>
-);
-
 // City Card Component
 const CityCard = ({ name, image, propertyCount, onClick }) => (
   <button 
@@ -46,10 +23,6 @@ const CityCard = ({ name, image, propertyCount, onClick }) => (
       style={{ backgroundImage: `url(${image})` }}
     >
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-    </div>
-    <div className="absolute bottom-0 left-0 right-0 p-6">
-      <h3 className="text-white text-2xl font-bold mb-1">{name}</h3>
-      <p className="text-blue-200 text-sm">{propertyCount}+ Properties</p>
     </div>
   </button>
 );
@@ -97,12 +70,12 @@ function Home() {
     ];
 
     const popularCities = [
-        { name: 'Mumbai', image: 'https://images.unsplash.com/photo-1566552881560-0be862a7c445?w=500&fit=crop', count: '2,500' },
-        { name: 'Bangalore', image: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=500&fit=crop', count: '1,800' },
-        { name: 'Pune', image: 'https://images.unsplash.com/photo-1595658658481-d53d3f999875?w=500&fit=crop', count: '1,200' },
-        { name: 'Delhi', image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=500&fit=crop', count: '2,000' },
-        { name: 'Hyderabad', image: 'https://images.unsplash.com/photo-1593693397690-362cb9666fc2?w=500&fit=crop', count: '900' },
-        { name: 'Chennai', image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=500&fit=crop', count: '850' }
+        { name: 'Mumbai', image: 'https://images.unsplash.com/photo-1566552881560-0be862a7c445?w=500&fit=crop' },
+        { name: 'Bangalore', image: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=500&fit=crop' },
+        { name: 'Pune', image: 'https://images.unsplash.com/photo-1595658658481-d53d3f999875?w=500&fit=crop' },
+        { name: 'Delhi', image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=500&fit=crop' },
+        { name: 'Hyderabad', image: 'https://images.unsplash.com/photo-1593693397690-362cb9666fc2?w=500&fit=crop' },
+        { name: 'Chennai', image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=500&fit=crop' }
     ];
 
     const quickSearchCities = ['Mumbai', 'Bangalore', 'Pune', 'Delhi', 'Hyderabad'];
@@ -300,14 +273,16 @@ function Home() {
             {/* --- Enhanced Social Proof Section --- */}
             <div className="py-24 bg-gradient-to-br from-blue-50 to-indigo-50">
                 <div className="container mx-auto px-4">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-16 text-center text-gray-900">
-                        Trusted by Thousands
+                    <h2 className="text-4xl md:text-5xl font-bold mb-4 text-center text-gray-900">
+                        Get in Early
                     </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-                        <StatCard number="50,000" suffix="+" label="Happy Roommates" />
-                        <StatCard number="95" suffix="%" label="Success Rate" />
-                        <StatCard number="500" suffix="+" label="Cities" />
-                        <StatCard number="4.8" suffix="/5" label="User Rating" />
+                    <p className="text-xl text-gray-600 text-center max-w-2xl mx-auto mb-16">
+                        We're just getting started — join now and help shape the community from the ground up.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 max-w-4xl mx-auto">
+                        <StatCard number="Founding" label="Member status for early users" />
+                        <StatCard number="0%" label="Broker fees — connect directly" />
+                        <StatCard number="100%" label="Free while we grow" />
                     </div>
                 </div>
             </div>
@@ -320,7 +295,7 @@ function Home() {
                             View rooms in Popular Cities
                         </h2>
                         <p className="text-xl text-gray-600">
-                            Explore thousands of verified properties in major cities
+                            Explore rooms and PGs across major cities
                         </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -348,41 +323,21 @@ function Home() {
                 </div>
             </div>
             
-            {/* --- Enhanced Testimonials Section --- */}
+            {/* --- Early Community Section --- */}
             <div className="py-24 bg-gray-50">
-                <div className="container mx-auto px-4">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-                            What Our Users Say
-                        </h2>
-                        <p className="text-xl text-gray-600">
-                            Real stories from real people who found their perfect match
-                        </p>
-                    </div>
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <TestimonialCard 
-                            quote="I was moving to Mumbai for my first job and was so stressed. RoommateFinder made it incredibly simple. I found a verified room and a great flatmate in just a few days!" 
-                            name="Anjali Gupta" 
-                            city="Mumbai"
-                            avatar="AG"
-                        />
-                        <TestimonialCard 
-                            quote="As a student, safety was my biggest concern. The verified profiles on this site gave me peace of mind. Found a wonderful and respectful roommate in Pune." 
-                            name="Rohan Sharma" 
-                            city="Pune"
-                            avatar="RS"
-                        />
-                        <TestimonialCard 
-                            quote="Finally, a platform without brokers! I connected directly with a potential roommate in Bangalore who shares my interests. It feels less like a transaction and more like joining a community." 
-                            name="Priya Singh" 
-                            city="Bangalore"
-                            avatar="PS"
-                        />
-                    </div>
+                <div className="container mx-auto px-4 text-center">
+                    <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+                        Your Story Starts Here
+                    </h2>
+                    <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+                        We're a new community. Be one of the first to find your room or roommate — and tell us how it goes.
+                    </p>
+                    <a href="/signup" className="inline-flex items-center bg-blue-600 text-white font-bold px-8 py-4 rounded-xl hover:bg-blue-700 transition-all">
+                        Join the community
+                    </a>
                 </div>
             </div>
 
-            
             {/* --- Enhanced Call to Action Section --- */}
             <div className="py-24 bg-gradient-to-r from-blue-600 to-purple-600 text-white relative overflow-hidden">
                 <div className="absolute inset-0 opacity-10">
@@ -394,7 +349,7 @@ function Home() {
                         Ready to Find Your Perfect Roommate?
                     </h2>
                     <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto mb-12 leading-relaxed">
-                        Join thousands of happy users who found their ideal living situation. Start your journey today and discover your perfect match.
+                        Be among the first to find your ideal living situation. Start your journey today and help build the community.
                     </p>
                     <div className="flex flex-wrap gap-4 justify-center">
                         <Link 
