@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { db, auth } from './firebase.js';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import {  doc, getDoc } from 'firebase/firestore';
 import Home from './components/Home.jsx';
 import AllListings from './components/AllListings.jsx';
 import PropertyDetails from './components/PropertyDetails.jsx';
@@ -24,60 +24,31 @@ import ListingChoice from './components/ListingChoice.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 function App() {
-  const [properties, setProperties] = useState([]);
-  const [seekers, setSeekers] = useState([]); // <-- 2. ADDED STATE
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
 
-  // Combined useEffect to handle auth and data fetching in the correct order
   useEffect(() => {
-    const initializeApp = async (currentUser) => {
-      try {
-        // 1. Fetch user profile if a user is logged in
-        let fetchedUserProfile = null;
-        if (currentUser) {
-          const userDocRef = doc(db, 'users', currentUser.uid);
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists()) {
-            fetchedUserProfile = userDoc.data();
-            setUserProfile(fetchedUserProfile);
-          }
-        } else {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+
+      if (currentUser) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          setUserProfile(userDoc.exists() ? userDoc.data() : null);
+        } catch (err) {
+          console.error('Failed to load user profile:', err);
           setUserProfile(null);
         }
-
-        // 2. Fetch all properties
-        const propertiesCollection = collection(db, 'properties');
-        const propertiesSnapshot = await getDocs(propertiesCollection);
-        const propertiesList = propertiesSnapshot.docs.map(doc => ({  ...doc.data(), id: doc.id }));
-
-        // Properties now carry ownerName/ownerPhotoUrl directly — no user lookup needed.
-        const combinedProperties = propertiesList;
-        
-        // 5. Fetch all seekers <-- 3. ADDED THIS BLOCK
-        const seekersCollection = collection(db, 'seekers');
-        const seekersSnapshot = await getDocs(seekersCollection);
-        const seekersList = seekersSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-
-        setProperties(combinedProperties);
-        setSeekers(seekersList); // <-- 3. SET SEEKERS STATE
-
-      } catch (error) {
-        console.error("Error initializing app:", error);
-        // Handle error appropriately, maybe set an error state
-      } finally {
-        setLoading(false); // Stop loading after all data is fetched or error
+      } else {
+        setUserProfile(null);
       }
-    };
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      initializeApp(currentUser); // Run the main data fetch function after auth state is known
+      setLoading(false);
     });
 
-    return () => unsubscribe(); // Cleanup on unmount
-  }, []); // This effect runs once on initial load
+    return () => unsubscribe();
+  }, []);
 
   if (loading) {
     return (
@@ -92,9 +63,9 @@ function App() {
       <Navbar user={user} userProfile={userProfile} />
       <Toaster position="top-center" />
       <Routes>
-        <Route path="/" element={<Home properties={properties} user={user} />} />
-        <Route path="/listings" element={<AllListings properties={properties} seekers={seekers} user={user} userProfile={userProfile} />} />
-        <Route path="/property/:id" element={<PropertyDetails properties={properties} user={user} />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/listings" element={<AllListings  user={user} userProfile={userProfile} />} />
+        <Route path="/property/:id" element={<PropertyDetails  user={user} />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/seeker/:id" element={<SeekerDetails  user={user} />} />

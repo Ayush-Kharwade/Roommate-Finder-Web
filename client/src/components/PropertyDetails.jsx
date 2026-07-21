@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase';
 import { doc, getDoc, collection, addDoc, query, getDocs, serverTimestamp, orderBy } from 'firebase/firestore';
 import toast from 'react-hot-toast';
+import ClipLoader from 'react-spinners/ClipLoader';
 
 const preferenceOptions = [
     { name: 'Night Owl', emoji: '🦉' }, { name: 'Early Bird', emoji: '🐦' },
@@ -23,10 +24,28 @@ const highlightsList = [
 function PropertyDetails({ properties, user }) {
     const { id } = useParams();
     const navigate = useNavigate();
-    const property = properties.find((p) => p.id === id);
 
+    const [property, setProperty] = useState(null);
+    const [loadingProperty, setLoadingProperty] = useState(true);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showContact, setShowContact] = useState(false);
+    const [ownerData, setOwnerData] = useState(null);
+    const [loadingContact, setLoadingContact] = useState(false);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const snap = await getDoc(doc(db, 'properties', id));
+                if (snap.exists()) {
+                    setProperty({ ...snap.data(), id: snap.id });
+                }
+            } catch (err) {
+                console.error('Failed to load property:', err);
+            } finally {
+                setLoadingProperty(false);
+            }
+        })();
+    }, [id]);
 
     const handleChat = () => {
         if (!user) return toast.error('Please log in to start a chat.');
@@ -74,6 +93,9 @@ function PropertyDetails({ properties, user }) {
         }
     };
 
+    if (loadingProperty) {
+        return <div className="text-center p-8"><ClipLoader color="#3b82f6" size={40} /></div>;
+    }
     if (!property) {
         return <div className="text-center text-red-500 text-2xl p-8">Property not found!</div>;
     }
@@ -92,9 +114,6 @@ function PropertyDetails({ properties, user }) {
     const prevImage = () => {
         setCurrentImageIndex((prev) => (prev - 1 + propertyImages.length) % propertyImages.length);
     };
-
-    const [ownerData, setOwnerData] = useState(null);
-    const [loadingContact, setLoadingContact] = useState(false);
 
     return (
         <div className="bg-gray-50 min-h-screen">

@@ -5,8 +5,12 @@ import { getDistance } from 'geolib';
 import SeekerCard from './SeekerCard.jsx';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { collection, getDocs, query, orderBy, limit, startAfter } from 'firebase/firestore';
+import { db } from '../firebase';
 
-function AllListings({ properties, seekers, user, userProfile }) {
+const PAGE_SIZE = 24;
+
+function AllListings({  user, userProfile }) {
     const [searchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
     const [activeTab, setActiveTab] = useState('rooms');
@@ -18,6 +22,11 @@ function AllListings({ properties, seekers, user, userProfile }) {
     const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [sortedProperties, setSortedProperties] = useState(null);
+    const [properties, setProperties] = useState([]);
+    const [seekers, setSeekers] = useState([]);
+    const [dataLoading, setDataLoading] = useState(true);
+    const [lastDoc, setLastDoc] = useState(null);
+    const [hasMore, setHasMore] = useState(true);
     
     
     // Maximum distance to show properties (in km)
@@ -189,6 +198,49 @@ function AllListings({ properties, seekers, user, userProfile }) {
         setShowSuggestions(false);
         toast.success("Search cleared");
     };
+
+    const fetchProperties = async (isLoadMore = false) => {
+        try {
+            let q = query(
+                collection(db, 'properties'),
+                orderBy('createdAt', 'desc'),
+                limit(PAGE_SIZE)
+            );
+            if (isLoadMore && lastDoc) {
+                q = query(
+                    collection(db, 'properties'),
+                    orderBy('createdAt', 'desc'),
+                    startAfter(lastDoc),
+                    limit(PAGE_SIZE)
+                );
+            }
+
+            const snap = await getDocs(q);
+            const batch = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+
+            setProperties(prev => isLoadMore ? [...prev, ...batch] : batch);
+            setLastDoc(snap.docs[snap.docs.length - 1] || lastDoc);
+            setHasMore(snap.docs.length === PAGE_SIZE);
+        } catch (err) {
+            console.error('Failed to load properties:', err);
+            toast.error('Could not load listings.');
+        } finally {
+            setDataLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchProperties(false);
+        // seekers: same pattern, or fetch all if the set is small
+        (async () => {
+            try {
+                const snap = await getDocs(query(collection(db, 'seekers'), limit(50)));
+                setSeekers(snap.docs.map(d => ({ ...d.data(), id: d.id })));
+            } catch (err) {
+                console.error('Failed to load seekers:', err);
+            }
+        })();
+    }, []);
 
     const filteredSeekers = seekers
         .filter((seeker) => {
@@ -374,6 +426,16 @@ function AllListings({ properties, seekers, user, userProfile }) {
                                         />
                                     );
                                 })}
+                            </div>
+                        )}
+                        {hasMore && !dataLoading && displayedProperties.length > 0 && (
+                            <div className="text-center mt-8">
+                                <button
+                                    onClick={() => fetchProperties(true)}
+                                    className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                    Load More
+                                </button>
                             </div>
                         )}
                     </>
