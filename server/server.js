@@ -4,7 +4,6 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import roomRoutes from './routes/roomRoutes.js';
 
 const app = express();
 
@@ -37,7 +36,6 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ Connected to MongoDB Atlas'))
   .catch((error) => console.error('❌ MongoDB Connection Error:', error.message));
 
-app.use('/api/rooms', roomRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Roommate-Finder API is active!' });
