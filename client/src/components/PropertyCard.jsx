@@ -4,15 +4,13 @@ import toast from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { getDistance } from 'geolib'; // 1. Import the calculation function
 
-function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, owner, lat, lng, userLocation }) {
-    const [showContact, setShowContact] = useState(false);
+function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, owner, lat, lng, userLocation, user }) {
+    const navigate = useNavigate();
+
 
     const handleContactClick = () => {
-        if (owner && owner.contactNumber) {
-            setShowContact(!showContact);
-        } else {
-            toast.error("Contact information is not available for this listing.");
-        }
+        // Contact lives on the details page (gated by login there)
+        navigate(`/property/${id}`);
     };
 
     // 2. This is the correct distance calculation logic
@@ -78,13 +76,6 @@ function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, 
                     </div>
                 </div>
             </div>
-            {showContact && (
-                <div className="mt-3 text-center bg-blue-50 p-2 rounded-lg">
-                    <a href={`tel:${owner.contactNumber}`} className="font-semibold text-blue-600">
-                        Call: {owner.contactNumber}
-                    </a>
-                </div>
-            )}
         </Link>
     );
 }

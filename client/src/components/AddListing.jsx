@@ -42,6 +42,7 @@ function AddListing() {
 
     const [imageFiles, setImageFiles] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const currentUser = auth.currentUser;
 
     useEffect(() => {
         if (formData.address.length < 3) {
@@ -144,7 +145,12 @@ function AddListing() {
 
             const newListing = {
                 ...submissionData,
-                ownerId: auth.currentUser.uid,
+                ownerId: currentUser.uid,
+                // Public owner info, denormalized for fast card rendering.
+                // NOTE: deliberately NOT storing contactNumber/email here — those stay
+                // on the user doc, readable only by logged-in users via Firestore rules.
+                ownerName: currentUser.displayName || 'Anonymous',
+                ownerPhotoUrl: currentUser.photoURL || null,
                 imageUrls: [],
                 createdAt: serverTimestamp(),
             };

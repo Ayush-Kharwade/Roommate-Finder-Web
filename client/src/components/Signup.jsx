@@ -1,37 +1,76 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase'; // 1. Import db
+import { auth, db } from '../firebase'; 
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore'; // 2. Import firestore functions
 import toast from 'react-hot-toast';
+import { Eye, EyeOff } from 'lucide-react';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 function Signup() {
-  const [name, setName] = useState(''); // 3. Add state for name
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSignup = async (e) => {
-  e.preventDefault();
-  setError('');
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    e.preventDefault();
+    setError('');
 
-    // Set the user's display name
-    await updateProfile(user, { displayName: name });
+    // Basic client-side guard before hitting Firebase
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
 
-    await setDoc(doc(db, "users", user.uid), {
-      name: name,
-      email: user.email,
-    });
+    setIsLoading(true);
+    let createdUser = null;
 
-    toast.success('Successfully signed up!');
-    navigate('/');
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      createdUser = userCredential.user;
+
+      await updateProfile(createdUser, { displayName: name });
+
+      await setDoc(doc(db, 'users', createdUser.uid), {
+        name: name,
+        email: createdUser.email,
+        createdAt: serverTimestamp(),
+      });
+
+      toast.success('Successfully signed up!');
+      navigate('/');
     } catch (err) {
-    setError(err.message);
-    toast.error("Failed to sign up.");
+      // If the Auth account was created but a later step failed,
+      // delete it so no orphaned user is left behind.
+      if (createdUser) {
+        try {
+          await createdUser.delete();
+        } catch (cleanupErr) {
+          console.error('Failed to roll back orphaned auth user:', cleanupErr);
+        }
+      }
+      setError(mapAuthError(err.code));
+      toast.error('Failed to sign up.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const mapAuthError = (code) => {
+    switch (code) {
+      case 'auth/email-already-in-use':
+        return 'An account with this email already exists. Try logging in.';
+      case 'auth/invalid-email':
+        return 'Please enter a valid email address.';
+      case 'auth/weak-password':
+        return 'Password is too weak. Use at least 6 characters.';
+      case 'auth/network-request-failed':
+        return 'Network error. Check your connection and try again.';
+      default:
+        return 'Something went wrong. Please try again.';
     }
   };
 
@@ -63,16 +102,30 @@ function Signup() {
         </div>
         <div className="mb-4">
           <label className="block text-gray-700">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg"
-            required
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 pr-10 border rounded-lg"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+            </button>
+          </div>
         </div>
-        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-          Sign Up
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-300"
+        >
+          {isLoading ? 'Creating account...' : 'Sign Up'}
         </button>
       </form>
     </div>

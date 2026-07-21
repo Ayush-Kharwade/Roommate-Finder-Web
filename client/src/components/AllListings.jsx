@@ -369,6 +369,7 @@ function AllListings({ properties, seekers, user, userProfile }) {
                                             lng={property.lng}
                                             userLocation={userLocation}
                                             owner={property.owner}
+                                            user={user}
                                             distance={distanceInKm}
                                         />
                                     );

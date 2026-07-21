@@ -52,20 +52,9 @@ function App() {
         const propertiesSnapshot = await getDocs(propertiesCollection);
         const propertiesList = propertiesSnapshot.docs.map(doc => ({  ...doc.data(), id: doc.id }));
 
-        // 3. Fetch all users to create a map
-        const usersCollection = collection(db, 'users');
-        const usersSnapshot = await getDocs(usersCollection);
-        const usersMap = {};
-        usersSnapshot.forEach(doc => {
-          usersMap[doc.id] = doc.data();
-        });
-
-        // 4. Combine properties with their owner's data
-        const combinedProperties = propertiesList.map(property => ({
-          ...property,
-          owner: usersMap[property.ownerId] || null,
-        }));
-
+        // Properties now carry ownerName/ownerPhotoUrl directly — no user lookup needed.
+        const combinedProperties = propertiesList;
+        
         // 5. Fetch all seekers <-- 3. ADDED THIS BLOCK
         const seekersCollection = collection(db, 'seekers');
         const seekersSnapshot = await getDocs(seekersCollection);

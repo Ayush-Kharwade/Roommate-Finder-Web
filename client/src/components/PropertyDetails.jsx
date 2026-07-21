@@ -29,18 +29,48 @@ function PropertyDetails({ properties, user }) {
     const [showContact, setShowContact] = useState(false);
 
     const handleChat = () => {
-        if (!user) return toast.error("Please log in to start a chat.");
-        if (!property.owner?.id) return toast.error("Owner information is not available.");
-        if (user.uid === property.owner.id) return toast.error("You cannot start a chat with yourself.");
-        const chatId = user.uid > property.owner.id ? `${user.uid}_${property.owner.id}` : `${property.owner.id}_${user.uid}`;
+        if (!user) return toast.error('Please log in to start a chat.');
+        if (!property.ownerId) return toast.error('Owner information is not available.');
+        if (user.uid === property.ownerId) return toast.error('You cannot start a chat with yourself.');
+        const chatId = user.uid > property.ownerId
+            ? `${user.uid}_${property.ownerId}`
+            : `${property.ownerId}_${user.uid}`;
         navigate(`/chat/${chatId}`);
     };
     
-    const handleContactClick = () => {
-        if (property.owner?.contactNumber) {
-            setShowContact(!showContact);
-        } else {
-            toast.error("Contact information is not available for this user.");
+    const handleContactClick = async () => {
+        // Gate behind login — marketplace convention + Firestore rules require it
+        if (!user) {
+            toast.error('Please log in to view contact details.');
+            navigate('/login');
+            return;
+        }
+
+        // Already fetched — just toggle
+        if (ownerData) {
+            setShowContact((s) => !s);
+            return;
+        }
+
+        if (!property.ownerId) {
+            toast.error('Owner information is not available.');
+            return;
+        }
+
+        setLoadingContact(true);
+        try {
+            const ownerSnap = await getDoc(doc(db, 'users', property.ownerId));
+            if (ownerSnap.exists()) {
+                setOwnerData(ownerSnap.data());
+                setShowContact(true);
+            } else {
+                toast.error('Owner profile not found.');
+            }
+        } catch (err) {
+            console.error('Failed to fetch owner contact:', err);
+            toast.error('Could not load contact details.');
+        } finally {
+            setLoadingContact(false);
         }
     };
 
@@ -63,6 +93,9 @@ function PropertyDetails({ properties, user }) {
         setCurrentImageIndex((prev) => (prev - 1 + propertyImages.length) % propertyImages.length);
     };
 
+    const [ownerData, setOwnerData] = useState(null);
+    const [loadingContact, setLoadingContact] = useState(false);
+
     return (
         <div className="bg-gray-50 min-h-screen">
             <div className="container mx-auto max-w-7xl py-8 px-4">
@@ -78,19 +111,19 @@ function PropertyDetails({ properties, user }) {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left Sidebar */}
                     <div className="lg:col-span-1 space-y-6">
-                        {/* Owner Profile Card */}
-                        {property.owner && (
+                        {/* Owner card — public info from denormalized fields, contact gated */}
+                        {property.ownerId && (
                             <div className="bg-white rounded-xl shadow-md p-6 text-center">
-                                <img 
-                                    src={property.owner.profilePic || `https://ui-avatars.com/api/?name=${property.owner.name.replace(/\s/g, '+')}&background=random`} 
-                                    alt={property.owner.name} 
+                                <img
+                                    src={property.ownerPhotoUrl || `https://ui-avatars.com/api/?name=${(property.ownerName || 'User').replace(/\s/g, '+')}&background=random`}
+                                    alt={property.ownerName || 'Owner'}
                                     className="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-4 border-gray-100"
                                 />
-                                <h3 className="text-xl font-bold text-gray-900">{property.owner.name}</h3>
+                                <h3 className="text-xl font-bold text-gray-900">{property.ownerName || 'Anonymous'}</h3>
                                 <p className="text-gray-500 text-sm mt-1">{property.address}</p>
-                                
+
                                 <div className="mt-6 space-y-3">
-                                    <button 
+                                    <button
                                         onClick={handleChat}
                                         className="w-full bg-green-500 text-white font-semibold py-3 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
                                     >
@@ -99,23 +132,27 @@ function PropertyDetails({ properties, user }) {
                                         </svg>
                                         Chat
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={handleContactClick}
-                                        className="w-full border-2 border-green-500 text-green-500 font-semibold py-3 rounded-lg hover:bg-green-50 transition-colors flex items-center justify-center gap-2"
+                                        disabled={loadingContact}
+                                        className="w-full border-2 border-green-500 text-green-500 font-semibold py-3 rounded-lg hover:bg-green-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                         </svg>
-                                        Call
+                                        {loadingContact ? 'Loading...' : user ? 'Call' : 'Log in to Call'}
                                     </button>
                                 </div>
 
-                                {showContact && (
+                                {showContact && ownerData?.contactNumber && (
                                     <div className="mt-4 bg-blue-50 p-3 rounded-lg">
-                                        <a href={`tel:${property.owner.contactNumber}`} className="font-semibold text-blue-600">
-                                            {property.owner.contactNumber}
+                                        <a href={`tel:${ownerData.contactNumber}`} className="font-semibold text-blue-600">
+                                            {ownerData.contactNumber}
                                         </a>
                                     </div>
+                                )}
+                                {showContact && ownerData && !ownerData.contactNumber && (
+                                    <p className="mt-4 text-sm text-gray-500">This user hasn't added a phone number.</p>
                                 )}
                             </div>
                         )}
