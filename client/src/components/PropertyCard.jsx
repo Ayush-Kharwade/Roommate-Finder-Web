@@ -29,17 +29,17 @@ function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, 
             className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
             <div className="flex gap-4">
                 <div className="flex-shrink-0">
-                    <img className="h-20 w-20 rounded-full object-cover" src={avatarUrl || 'https://placehold.co/300x300/e2e8f0/64748b?text=No+Photo'} alt={name} onError={(e) => { e.target.src = 'https://placehold.co/300x300/e2e8f0/64748b?text=No+Photo'; }} />
+                    <img className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover flex-shrink-0" src={avatarUrl || 'https://placehold.co/300x300/e2e8f0/64748b?text=No+Photo'} alt={name} onError={(e) => { e.target.src = 'https://placehold.co/300x300/e2e8f0/64748b?text=No+Photo'; }} />
                 </div>
-                <div className="flex-grow">
+                <div className="flex-grow min-w-0">
                     <div>
-                        <h3 className="text-lg font-bold text-gray-900">{name}</h3>
-                        <p className="text-sm text-gray-500">{location}</p>
+                        <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate"> {name}</h3>
+                        <p className="text-sm text-gray-500 truncate"> {location}</p>
                     </div>
                     <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs text-gray-700">
                         <div><p className="font-semibold">Rent</p><p className="text-sm">₹{rent}</p></div>
                         <div><p className="font-semibold">Looking for</p><p className="text-sm">{lookingFor}</p></div>
-                        <div><p className="font-semibold">Looking for</p><p className="text-sm">Roommate</p></div>
+                        <div><p className="font-semibold">Type</p><p className="text-sm">Roommate</p></div>
                     </div>
                 </div>
             </div>
