@@ -7,6 +7,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { collection, getDocs, query, orderBy, limit, startAfter } from 'firebase/firestore';
 import { db } from '../firebase';
+import ClipLoader from 'react-spinners/ClipLoader';
 
 const PAGE_SIZE = 24;
 
@@ -21,12 +22,17 @@ function AllListings({  user, userProfile }) {
     const [searchLocation, setSearchLocation] = useState(null);
     const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [autocompleteError, setAutocompleteError] = useState(false);
     const [sortedProperties, setSortedProperties] = useState(null);
     const [properties, setProperties] = useState([]);
     const [seekers, setSeekers] = useState([]);
     const [dataLoading, setDataLoading] = useState(true);
     const [lastDoc, setLastDoc] = useState(null);
     const [hasMore, setHasMore] = useState(true);
+    const [fetchError, setFetchError] = useState(false);
+
+
+
     
     
     // Maximum distance to show properties (in km)
@@ -96,9 +102,11 @@ function AllListings({  user, userProfile }) {
                         formatted: res.formatted,
                         geometry: res.geometry,
                     })));
+                    setAutocompleteError(false);
                 }
             } catch (error) {
                 console.error("Autocomplete error:", error);
+                setAutocompleteError(true);
             } finally {
                 setIsFetchingSuggestions(false);
             }
@@ -187,7 +195,7 @@ function AllListings({  user, userProfile }) {
             }
         } catch (error) {
             console.error("Geocoding error:", error);
-            toast.error("Failed to search location. Please try again.");
+            toast.error("Couldn't find that location. Try a more specific address.");
         }
     };
 
@@ -199,7 +207,16 @@ function AllListings({  user, userProfile }) {
         toast.success("Search cleared");
     };
 
+    const withTimeout = (promise, ms = 10000) =>
+        Promise.race([
+            promise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), ms))
+        ]);
+
     const fetchProperties = async (isLoadMore = false) => {
+        setFetchError(false);
+        setDataLoading(true);
+
         try {
             let q = query(
                 collection(db, 'properties'),
@@ -215,7 +232,7 @@ function AllListings({  user, userProfile }) {
                 );
             }
 
-            const snap = await getDocs(q);
+            const snap = await withTimeout(getDocs(q));
             const batch = snap.docs.map(d => ({ ...d.data(), id: d.id }));
 
             setProperties(prev => isLoadMore ? [...prev, ...batch] : batch);
@@ -223,6 +240,7 @@ function AllListings({  user, userProfile }) {
             setHasMore(snap.docs.length === PAGE_SIZE);
         } catch (err) {
             console.error('Failed to load properties:', err);
+            setFetchError(true);
             toast.error('Could not load listings.');
         } finally {
             setDataLoading(false);
@@ -252,6 +270,24 @@ function AllListings({  user, userProfile }) {
             }
             return seeker.gender === genderFilter;
         });
+
+    const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+    useEffect(() => {
+        const goOnline = () => {
+            setIsOffline(false);
+            setDataLoading(true);
+            fetchProperties(false);
+        };
+        const goOffline = () => setIsOffline(true);
+        window.addEventListener('online', goOnline);
+        window.addEventListener('offline', goOffline);
+        return () => {
+            window.removeEventListener('online', goOnline);
+            window.removeEventListener('offline', goOffline);
+        };
+    }, []);
+
 
     return (
         <main className="flex-grow bg-white px-4 py-8">
@@ -295,6 +331,13 @@ function AllListings({  user, userProfile }) {
                                     }}
                                     autoComplete="off"
                                 />
+
+                                {autocompleteError && (
+                                        <p className="text-xs text-amber-600 mt-1">
+                                            Address suggestions unavailable — you can still type a full address and search.
+                                        </p>
+                                )}
+
                                 {showSuggestions && suggestions.length > 0 && (
                                     <ul className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
                                         {suggestions.map((suggestion, index) => (
@@ -359,7 +402,29 @@ function AllListings({  user, userProfile }) {
 
                 {(activeTab === 'rooms') && (
                     <>
-                        {displayedProperties.length === 0 ? (
+                        {isOffline ? (
+                            <div className="text-center py-12 bg-amber-50 rounded-lg">
+                                <h3 className="text-xl font-semibold text-gray-700 mb-2">You're offline</h3>
+                                <p className="text-gray-500">Check your internet connection — listings will load once you're back.</p>
+                            </div>
+                        ) :fetchError ? (
+                            <div className="text-center py-12 bg-red-50 rounded-lg">
+                                <h3 className="text-xl font-semibold text-gray-700 mb-2">Couldn't load listings</h3>
+                                <p className="text-gray-500 mb-4">Check your connection and try again.</p>
+                                <button
+                                    onClick={() => { setFetchError(false); setDataLoading(true); fetchProperties(false); }}
+                                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                >
+                                    Retry
+                                </button>
+                            </div>
+
+                        ) : dataLoading ? (
+                        <div className="text-center py-16">
+                            <ClipLoader color="#3b82f6" size={40} />
+                            <p className="text-gray-500 mt-4">Loading listings...</p>
+                        </div>
+                        ) : displayedProperties.length === 0 ? (
                             <div className="text-center py-12 bg-gray-50 rounded-lg">
                                 <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
