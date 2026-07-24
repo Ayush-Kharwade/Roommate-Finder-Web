@@ -29,7 +29,7 @@ function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, 
             className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
             <div className="flex gap-4">
                 <div className="flex-shrink-0">
-                    <img className="h-20 w-20 rounded-full object-cover" src={avatarUrl} alt={name} />
+                    <img className="h-20 w-20 rounded-full object-cover" src={avatarUrl || 'https://placehold.co/300x300/e2e8f0/64748b?text=No+Photo'} alt={name} onError={(e) => { e.target.src = 'https://placehold.co/300x300/e2e8f0/64748b?text=No+Photo'; }} />
                 </div>
                 <div className="flex-grow">
                     <div>

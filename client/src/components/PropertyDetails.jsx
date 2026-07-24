@@ -105,7 +105,11 @@ function PropertyDetails({ properties, user }) {
     }).filter(Boolean);
 
     // Create array of images (if you have multiple, otherwise just use the main image)
-    const propertyImages = property.imageUrl ? [property.imageUrl] : [];
+    const propertyImages = property.imageUrls?.length
+        ? property.imageUrls
+        : property.imageUrl
+            ? [property.imageUrl]
+            : [];
 
     const nextImage = () => {
         setCurrentImageIndex((prev) => (prev + 1) % propertyImages.length);

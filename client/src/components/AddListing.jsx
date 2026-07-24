@@ -5,6 +5,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import ClipLoader from 'react-spinners/ClipLoader';
+import { uploadMultipleToCloudinary } from '../utils/cloudinary';
 
 // Define the options for the form
 const highlightOptions = [
@@ -110,7 +111,6 @@ function AddListing() {
         }
         
         setIsLoading(true);
-        toast("Image uploads are currently paused pending billing setup. Proceeding without images.");
 
         // Geocode the address to get coordinates
         const OPENCAGE_API_KEY = import.meta.env.VITE_OPENCAGE_API_KEY;
@@ -128,7 +128,7 @@ function AddListing() {
             // }
 
             if (!submissionData.lat || !submissionData.lng) {
-                toast.info("Geocoding your address...");
+                toast("Geocoding your address...");
                 const OPENCAGE_API_KEY = import.meta.env.VITE_OPENCAGE_API_KEY;
                 const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(submissionData.address)}&key=${OPENCAGE_API_KEY}&limit=1`;
                 const response = await axios.get(url);
@@ -140,18 +140,26 @@ function AddListing() {
                 }
             }
             
-            // In a real implementation, you would upload images to Firebase Storage here
-            // and get back the download URLs.
+            // Upload images to Cloudinary (if any were selected)
+            let imageUrls = [];
+            if (imageFiles.length > 0) {
+                toast.loading('Uploading photos...', { id: 'upload' });
+                try {
+                    imageUrls = await uploadMultipleToCloudinary(imageFiles);
+                    toast.success('Photos uploaded!', { id: 'upload' });
+                } catch (uploadErr) {
+                    toast.error('Photo upload failed. Listing not created.', { id: 'upload' });
+                    throw uploadErr;
+                }
+            }
 
             const newListing = {
                 ...submissionData,
                 ownerId: currentUser.uid,
-                // Public owner info, denormalized for fast card rendering.
-                // NOTE: deliberately NOT storing contactNumber/email here — those stay
-                // on the user doc, readable only by logged-in users via Firestore rules.
                 ownerName: currentUser.displayName || 'Anonymous',
                 ownerPhotoUrl: currentUser.photoURL || null,
-                imageUrls: [],
+                imageUrls,
+                imageUrl: imageUrls[0] || null,  // first image as the card thumbnail
                 createdAt: serverTimestamp(),
             };
 
@@ -248,17 +256,95 @@ function AddListing() {
 
                     {/* Image Upload */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Upload Photos of your room</label>
-                        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                            <div className="space-y-1 text-center">
-                                <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></svg>
-                                <div className="flex text-sm text-gray-600">
-                                    <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none"><span>Upload up to 3 files</span><input id="file-upload" name="file-upload" type="file" className="sr-only" multiple onChange={handleImageChange} accept="image/png, image/jpeg" /></label>
-                                </div>
-                                <p className="text-xs text-gray-500">PNG, JPG up to 2MB each</p>
-                            </div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Upload Photos of your room
+                        </label>
+
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                            {imageFiles.length === 0 ? (
+                                <>
+                                    <div className="space-y-1 text-center">
+                                        <svg
+                                            className="mx-auto h-12 w-12 text-gray-400"
+                                            stroke="currentColor"
+                                            fill="none"
+                                            viewBox="0 0 48 48"
+                                        >
+                                            <path
+                                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8"
+                                                strokeWidth={2}
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            />
+                                        </svg>
+
+                                        <div className="flex justify-center text-sm text-gray-600">
+                                            <label
+                                                htmlFor="file-upload"
+                                                className="cursor-pointer bg-white font-medium text-blue-600 hover:text-blue-500"
+                                            >
+                                                <span>Upload up to 3 files</span>
+                                                <input
+                                                    id="file-upload"
+                                                    type="file"
+                                                    className="sr-only"
+                                                    multiple
+                                                    onChange={handleImageChange}
+                                                    accept="image/png, image/jpeg, image/webp"
+                                                />
+                                            </label>
+                                        </div>
+
+                                        <p className="text-xs text-gray-500">
+                                            PNG, JPG, WEBP up to 2MB each
+                                        </p>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex gap-3 justify-center flex-wrap mb-4">
+                                        {imageFiles.map((file, i) => (
+                                            <div key={i} className="relative">
+                                                <img
+                                                    src={URL.createObjectURL(file)}
+                                                    alt={`Preview ${i + 1}`}
+                                                    className="w-24 h-24 object-cover rounded-lg border"
+                                                />
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setImageFiles(
+                                                            imageFiles.filter((_, idx) => idx !== i)
+                                                        )
+                                                    }
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="text-center">
+                                        <label
+                                            htmlFor="file-upload"
+                                            className="cursor-pointer text-blue-600 hover:text-blue-500 font-medium text-sm"
+                                        >
+                                            Change photos
+                                            <input
+                                                id="file-upload"
+                                                type="file"
+                                                className="sr-only"
+                                                multiple
+                                                onChange={handleImageChange}
+                                                accept="image/png, image/jpeg, image/webp"
+                                            />
+                                        </label>
+                                    </div>
+                                </>
+                            )}
                         </div>
-                        {imageFiles.length > 0 && <p className="text-sm text-gray-500 mt-2">{imageFiles.length} file(s) selected.</p>}
                     </div>
 
                     {/* Highlights */}
