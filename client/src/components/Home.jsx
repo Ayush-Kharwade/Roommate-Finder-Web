@@ -3,12 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 
 // Enhanced Feature Card with hover effects
 const FeatureCard = ({ icon, title, description }) => (
-  <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 text-center group">
-    <div className="mx-auto bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 w-20 h-20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+  <div className="bg-white p-8 rounded-xl border border-[#E8DFD0] hover:border-[#F5A623] transition-colors text-center">
+    <div className="mx-auto bg-[#1B4D3E]/10 text-[#1B4D3E] w-16 h-16 rounded-full flex items-center justify-center">
       {icon}
     </div>
-    <h3 className="text-xl font-bold mt-6 text-gray-900">{title}</h3>
-    <p className="text-gray-600 mt-3 leading-relaxed">{description}</p>
+    <h3 className="text-lg font-bold mt-6 text-[#2D2A26]">{title}</h3>
+    <p className="text-[#2D2A26]/70 mt-3 leading-relaxed text-sm">{description}</p>
   </div>
 );
 
@@ -28,12 +28,12 @@ const CityCard = ({ name, image, propertyCount, onClick }) => (
 );
 
 // Stats Counter Component
-const StatCard = ({ number, label, suffix = "" }) => (
-  <div className="text-center transform hover:scale-105 transition-transform duration-300">
-    <p className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-      {number}{suffix}
+const StatCard = ({ number, label }) => (
+  <div className="text-center">
+    <p className="font-serif text-5xl md:text-6xl font-bold text-[#1B4D3E]">
+      {number}
     </p>
-    <p className="text-gray-600 mt-2 font-medium">{label}</p>
+    <p className="text-[#2D2A26]/70 mt-2 font-medium">{label}</p>
   </div>
 );
 
@@ -113,118 +113,99 @@ function Home() {
 
     return (
         <main className="flex-grow bg-gray-50">
-            {/* --- Enhanced Hero Section --- */}
-            <div className="relative w-full bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 py-32 px-4 overflow-hidden">
-                {/* Animated Background Pattern */}
-                <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
-                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-300 rounded-full blur-3xl animate-pulse"></div>
+            {/* --- Hero --- */}
+            <div className="relative w-full min-h-[600px] flex items-center px-4 py-20 overflow-hidden">
+                {/* Photo background with warm overlay */}
+                <div className="absolute inset-0">
+                    <img
+                        src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1600&q=80"
+                        alt=""
+                        className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(27,77,62,0.92) 0%, rgba(27,77,62,0.75) 45%, rgba(27,77,62,0.35) 100%)' }}></div>
                 </div>
-                
+
                 <div className="container mx-auto max-w-6xl relative z-10">
-                    <div className="grid md:grid-cols-2 gap-12 items-center">
-                        <div className="text-white">
-                            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6">
-                                Find compatible
-                                <span className="block bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent">
-                                    flatmates
-                                </span>
-                            </h1>
-                            <p className="text-xl md:text-2xl text-blue-100 mb-8 leading-relaxed">
-                                Share your room with the right flatmates. Discover rooms & PGs across India.
-                            </p>
-                            
-                            {/* Enhanced Search Bar with Autosuggestions */}
-                            <form onSubmit={handleSearchSubmit} className="bg-white p-2 rounded-2xl shadow-2xl relative">
-                                <div className="flex gap-2">
-                                    <div className="flex-1 relative">
-                                        <input
-                                            type="text"
-                                            placeholder="Search by city, locality, or landmark..."
-                                            className="w-full px-6 py-4 border-none rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
-                                            value={searchTerm}
-                                            onChange={handleSearchChange}
-                                            onFocus={() => searchTerm && setShowSuggestions(true)}
-                                            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                                        />
-                                        
-                                        {/* Autosuggestion Dropdown */}
-                                        {showSuggestions && filteredSuggestions.length > 0 && (
-                                            <div className="absolute top-full left-0 right-0 mt-2 bg-white/80 backdrop-blur-md rounded-xl shadow-2xl border border-white/20 overflow-hidden z-50 max-h-80 overflow-y-auto">
-                                                {filteredSuggestions.map((suggestion, index) => (
-                                                    <button
-                                                        key={index}
-                                                        type="button"
-                                                        onClick={() => handleSuggestionClick(suggestion)}
-                                                        className="w-full px-6 py-3 text-left hover:bg-white/30 transition-colors flex items-center gap-3 border-b border-white/10 last:border-b-0"
-                                                    >
-                                                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        </svg>
-                                                        <span className="text-gray-800 font-bold">{suggestion}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <button 
-                                        type="submit"
-                                        className="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold px-8 py-4 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                                    >
-                                        Search
-                                    </button>
-                                </div>
-                            </form>
+                    <div className="max-w-2xl">
+                        <p className="text-[#F5A623] font-semibold tracking-wide uppercase text-sm mb-4">
+                            No brokers · Connect directly
+                        </p>
+                        <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] mb-6 text-white">
+                            A room that feels like{' '}
+                            <span className="text-[#F5A623]">home</span>
+                        </h1>
+                        <p className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed">
+                            Find rooms, PGs, and flatmates you'll actually get along with — across India, with no middlemen.
+                        </p>
 
-                            {/* Quick Search Tags */}
-                            <div className="mt-6 flex flex-wrap gap-3 items-center">
-                                <span className="text-blue-200 text-sm font-medium">Popular:</span>
-                                {quickSearchCities.map((city) => (
-                                    <button 
-                                        key={city}
-                                        onClick={() => {
-                                            setSearchTerm(city);
-                                            navigate(`/listings?search=${city}`);
-                                        }}
-                                        className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm text-white hover:bg-white/30 transition-all duration-300 border border-white/30"
-                                    >
-                                        {city}
-                                    </button>
-                                ))}
+                        {/* Search — the welcome mat */}
+                        <form onSubmit={handleSearchSubmit} className="bg-white p-2 rounded-2xl shadow-2xl relative">
+                            <div className="flex gap-2">
+                                <div className="flex-1 relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Search by city, locality, or landmark…"
+                                        className="w-full px-5 py-4 border-none rounded-xl text-[#2D2A26] focus:outline-none focus:ring-2 focus:ring-[#1B4D3E] text-base"
+                                        value={searchTerm}
+                                        onChange={handleSearchChange}
+                                        onFocus={() => searchTerm && setShowSuggestions(true)}
+                                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                                    />
+                                    {showSuggestions && filteredSuggestions.length > 0 && (
+                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 max-h-80 overflow-y-auto">
+                                            {filteredSuggestions.map((suggestion, index) => (
+                                                <button
+                                                    key={index}
+                                                    type="button"
+                                                    onClick={() => handleSuggestionClick(suggestion)}
+                                                    className="w-full px-5 py-3 text-left hover:bg-[#FBF7F0] transition-colors flex items-center gap-3 border-b border-gray-50 last:border-b-0"
+                                                >
+                                                    <svg className="w-5 h-5 text-[#1B4D3E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    </svg>
+                                                    <span className="text-[#2D2A26] font-medium">{suggestion}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="bg-[#F5A623] text-[#2D2A26] font-bold px-8 py-4 rounded-xl hover:bg-[#e0951a] transition-colors"
+                                >
+                                    Search
+                                </button>
                             </div>
-                        </div>
+                        </form>
 
-                        {/* Hero Illustration */}
-                        <div className="hidden md:flex justify-center items-center">
-                            <div className="relative w-96 h-96">
-                                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full animate-pulse"></div>
-                                <div className="absolute inset-8 bg-white rounded-full flex items-center justify-center shadow-2xl">
-                                    <svg className="w-48 h-48 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.124-1.282-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.124-1.282.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                    </svg>
-                                </div>
-                                <div className="absolute -top-4 -left-4 w-24 h-24 bg-green-400 rounded-full flex items-center justify-center shadow-xl animate-bounce">
-                                    <span className="text-4xl">🏠</span>
-                                </div>
-                                <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-pink-400 rounded-full flex items-center justify-center shadow-xl animate-bounce" style={{ animationDelay: '0.5s' }}>
-                                    <span className="text-4xl">😊</span>
-                                </div>
-                            </div>
+                        {/* Quick cities */}
+                        <div className="mt-6 flex flex-wrap gap-2 items-center">
+                            <span className="text-white/70 text-sm font-medium">Popular:</span>
+                            {quickSearchCities.map((city) => (
+                                <button
+                                    key={city}
+                                    onClick={() => { setSearchTerm(city); navigate(`/listings?search=${city}`); }}
+                                    className="px-4 py-2 bg-white/15 backdrop-blur-sm rounded-full text-sm text-white hover:bg-white/25 transition-colors border border-white/20"
+                                >
+                                    {city}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* --- Enhanced Why Choose Us Section --- */}
-            <div className="py-24 bg-white">
+            <div className="py-24 bg-[#FBF7F0]">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-                            Why Choose RoommateFinder?
+                        <p className="text-[#F5A623] font-semibold tracking-wide uppercase text-sm mb-3">Why us</p>
+                        <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-[#2D2A26]">
+                            Finding a home shouldn't feel like a gamble
                         </h2>
-                        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                            We've built the most trusted platform for finding roommates, with features designed to make your search safe, easy, and successful.
+                        <p className="text-lg text-[#2D2A26]/70 max-w-2xl mx-auto">
+                            We're building the simplest, most direct way to find rooms and flatmates across India.
                         </p>
                     </div>
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -234,8 +215,8 @@ function Home() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                 </svg>
                             } 
-                            title="Verified Profiles" 
-                            description="All users go through our comprehensive verification process to ensure safety and authenticity." 
+                            title="Direct Contact"
+                            description="Reach owners and flatmates directly. No brokers, no middlemen, no hidden fees."
                         />
                         <FeatureCard 
                             icon={
@@ -271,10 +252,10 @@ function Home() {
             
 
             {/* --- Enhanced Social Proof Section --- */}
-            <div className="py-24 bg-gradient-to-br from-blue-50 to-indigo-50">
+            <div className="py-24 bg-[#E8DFD0]">
                 <div className="container mx-auto px-4">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-4 text-center text-gray-900">
-                        Get in Early
+                    <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-center text-[#2D2A26]">
+                        Get in early
                     </h2>
                     <p className="text-xl text-gray-600 text-center max-w-2xl mx-auto mb-16">
                         We're just getting started — join now and help shape the community from the ground up.
@@ -291,7 +272,7 @@ function Home() {
             <div className="py-24 bg-white">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+                       <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-[#2D2A26]">
                             View rooms in Popular Cities
                         </h2>
                         <p className="text-xl text-gray-600">
@@ -312,7 +293,7 @@ function Home() {
                     <div className="text-center mt-12">
                         <Link 
                             to="/listings"
-                            className="inline-flex items-center bg-green-500 text-white font-bold px-8 py-4 rounded-xl hover:bg-green-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                            className="inline-flex items-center bg-[#1B4D3E] text-white font-bold px-8 py-4 rounded-xl hover:bg-[#153c30] transition-colors"
                         >
                             View All Cities
                             <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -338,31 +319,21 @@ function Home() {
                 </div>
             </div>
 
-            {/* --- Enhanced Call to Action Section --- */}
-            <div className="py-24 bg-gradient-to-r from-blue-600 to-purple-600 text-white relative overflow-hidden">
-                <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-10 right-10 w-80 h-80 bg-yellow-300 rounded-full blur-3xl"></div>
-                </div>
-                <div className="container mx-auto px-4 text-center relative z-10">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                        Ready to Find Your Perfect Roommate?
+            {/* --- Final CTA --- */}
+            <div className="py-24 bg-[#1B4D3E] text-white">
+                <div className="container mx-auto px-4 text-center">
+                    <h2 className="font-serif text-4xl md:text-5xl font-bold mb-6">
+                        Your next home is a search away
                     </h2>
-                    <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto mb-12 leading-relaxed">
-                        Be among the first to find your ideal living situation. Start your journey today and help build the community.
+                    <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-10 leading-relaxed">
+                        Be one of the first to find your room or flatmate — and help shape what this becomes.
                     </p>
                     <div className="flex flex-wrap gap-4 justify-center">
-                        <Link 
-                            to="/signup" 
-                            className="bg-white text-blue-600 font-bold px-10 py-5 rounded-xl hover:bg-blue-50 transition-all duration-300 shadow-2xl hover:shadow-xl transform hover:scale-105 text-lg"
-                        >
-                            Get Started Now
+                        <Link to="/signup" className="bg-[#F5A623] text-[#2D2A26] font-bold px-10 py-4 rounded-xl hover:bg-[#e0951a] transition-colors text-lg">
+                            Get started
                         </Link>
-                        <Link 
-                            to="/listings" 
-                            className="bg-transparent border-2 border-white text-white font-bold px-10 py-5 rounded-xl hover:bg-white hover:text-blue-600 transition-all duration-300 text-lg"
-                        >
-                            Browse Listings
+                        <Link to="/listings" className="bg-transparent border-2 border-white/40 text-white font-bold px-10 py-4 rounded-xl hover:bg-white/10 transition-colors text-lg">
+                            Browse rooms
                         </Link>
                     </div>
                 </div>
