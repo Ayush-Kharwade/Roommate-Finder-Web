@@ -4,6 +4,7 @@ import { db, auth } from '../firebase';
 import { doc, getDoc, collection, addDoc, query, getDocs, serverTimestamp, orderBy, deleteDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import ClipLoader from 'react-spinners/ClipLoader';
+import SEO from './SEO.jsx';
 
 const preferenceOptions = [
     { name: 'Night Owl', emoji: '🦉' }, { name: 'Early Bird', emoji: '🐦' },
@@ -137,6 +138,14 @@ function PropertyDetails({ properties, user }) {
 
     return (
         <div className="bg-gray-50 min-h-screen">
+
+            {/*SEO*/}
+            <SEO
+                title={property.title}
+                description={`${property.title} in ${property.address} — ₹${property.rent}/month. ${property.description?.slice(0, 100) || ''}`}
+                image={property.imageUrl}
+            />
+
             <div className="container mx-auto max-w-7xl py-8 px-4">
                 {/* Breadcrumb */}
                 <div className="text-sm text-gray-500 mb-6 flex items-center space-x-2">

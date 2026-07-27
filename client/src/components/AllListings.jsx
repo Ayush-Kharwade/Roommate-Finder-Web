@@ -8,8 +8,12 @@ import toast from 'react-hot-toast';
 import { collection, getDocs, query, orderBy, limit, startAfter } from 'firebase/firestore';
 import { db } from '../firebase';
 import ClipLoader from 'react-spinners/ClipLoader';
+import SEO from './SEO.jsx';
 
 const PAGE_SIZE = 24;
+
+//SEO
+<SEO title="Browse Rooms & Roommates" description="Explore rooms, PGs and roommate profiles across India." />
 
 function AllListings({  user, userProfile }) {
     const [searchParams] = useSearchParams();
@@ -37,6 +41,7 @@ function AllListings({  user, userProfile }) {
     
     // Maximum distance to show properties (in km)
     const MAX_DISTANCE_KM = 10;
+
 
     const displayedProperties = useMemo(() => {
         let filtered = [...properties];

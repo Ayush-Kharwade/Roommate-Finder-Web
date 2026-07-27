@@ -5,6 +5,10 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import SEO from './SEO.jsx';
+
+//SEO
+<SEO title="Sign Up" />
 
 function Signup() {
   const [name, setName] = useState('');

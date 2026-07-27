@@ -4,6 +4,10 @@ import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import toast from 'react-hot-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
+import SEO from './SEO.jsx';
+
+//SEO
+<SEO title="Login" />
 
 function Login() {
   const [email, setEmail] = useState('');
