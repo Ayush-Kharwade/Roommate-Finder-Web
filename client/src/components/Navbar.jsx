@@ -101,6 +101,9 @@ function Navbar({ user, userProfile }) {
 
             {user ? (
               <>
+                <Link to="/my-listings" onClick={closeMenu} className="block px-3 py-3 text-gray-700 font-medium hover:bg-gray-50 rounded-lg">
+                    My Listings
+                </Link>
                 <Link
                   to={`/profile/${user.uid}`}
                   onClick={closeMenu}

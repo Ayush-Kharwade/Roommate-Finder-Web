@@ -22,6 +22,7 @@ import AddSeekerProfile from './components/AddSeekerProfile.jsx';
 import SeekerDetails from './components/SeekerDetails.jsx';
 import ListingChoice from './components/ListingChoice.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import MyListings from './components/MyListings.jsx';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -77,6 +78,7 @@ function App() {
         <Route path="/preferences" element={<ProtectedRoute user={user}><Preferences /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute user={user}><Notifications /></ProtectedRoute>} />
         <Route path="/profile/:userId" element={<ProtectedRoute user={user}><Profile /></ProtectedRoute>} />
+        <Route path="/my-listings" element={<ProtectedRoute user={user}><MyListings /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />

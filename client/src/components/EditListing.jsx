@@ -15,6 +15,7 @@ function EditListing() {
     imageUrl: ''
   });
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Fetch the property data when the component loads
   useEffect(() => {
@@ -38,6 +39,7 @@ function EditListing() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const docRef = doc(db, 'properties', id);
+    setIsSaving(true);
     try {
       await updateDoc(docRef, {
         ...property,
@@ -48,6 +50,8 @@ function EditListing() {
     } catch (error) {
       console.error("Error updating document: ", error);
       toast.error("Failed to update property.");
+    } finally {
+        setIsSaving(false);
     }
   };
 
@@ -79,8 +83,12 @@ function EditListing() {
           <label className="block text-gray-700">Image URL</label>
           <input type="url" name="imageUrl" value={property.imageUrl} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg" placeholder="https://..." required />
         </div>
-        <button type="submit" className="w-full bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600">
-          Save Changes
+        <button
+            type="submit"
+            disabled={isSaving}
+            className="w-full bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 disabled:bg-yellow-300"
+        >
+            {isSaving ? 'Saving...' : 'Update Listing'}
         </button>
       </form>
     </div>

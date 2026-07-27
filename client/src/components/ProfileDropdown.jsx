@@ -41,6 +41,9 @@ function ProfileDropdown({ user, userProfile, handleLogout }) {
           <Link to="/notifications" className="block px-6 py-2 text-md text-gray-700 hover:bg-gray-100" onClick={() => setIsOpen(false)}>
             My Notifications
           </Link>
+          <Link to="/my-listings" className="block px-6 py-2 text-md text-gray-700 hover:bg-gray-100" onClick={() => setIsOpen(false)}>
+              My Listings
+          </Link>
           <Link to={`/profile/${user.uid}`} className="block px-6 py-2 text-md text-gray-700 hover:bg-gray-100" onClick={() => setIsOpen(false)}>
             My Profile
           </Link>

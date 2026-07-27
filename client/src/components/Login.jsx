@@ -14,10 +14,12 @@ function Login() {
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setIsSubmitting(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
       toast.success('Successfully logged in!');
@@ -25,7 +27,10 @@ function Login() {
     } catch (err) {
       setError(err.message);
       toast.error('Failed to log in.');
+    } finally {
+          setIsSubmitting(false);
     }
+    
   };
 
   return (
@@ -63,8 +68,12 @@ function Login() {
             </button>
           </div>
         </div>
-        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-          Login
+        <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-300"
+        >
+            {isSubmitting ? 'Signing in...' : 'Login'}
         </button>
       </form>
     </div>
