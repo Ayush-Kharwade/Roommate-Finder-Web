@@ -46,7 +46,7 @@ function MyListings() {
         <div className="container mx-auto max-w-4xl py-12 px-4 flex-grow">
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-3xl font-bold text-gray-800">My Listings</h1>
-                <Link to="/listing-choice" className="bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600">
+                <Link to="/listing-choice" className="bg-brand-green text-white font-semibold px-4 py-2 rounded-lg hover:bg-brand-green-dark">
                     + Add New
                 </Link>
             </div>
@@ -62,7 +62,7 @@ function MyListings() {
                     </svg>
                     <h3 className="text-xl font-semibold text-gray-700 mb-2">No listings yet</h3>
                     <p className="text-gray-500 mb-4">Post your first room or roommate profile to get started.</p>
-                    <Link to="/listing-choice" className="inline-block bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700">
+                    <Link to="/listing-choice" className="inline-block bg-brand-green text-white font-semibold px-6 py-2 rounded-lg hover:bg-brand-green-dark">
                         Create a Listing
                     </Link>
                 </div>
@@ -79,7 +79,7 @@ function MyListings() {
                                 />
                             </Link>
                             <div className="p-4">
-                                <Link to={`/property/${listing.id}`} className="font-semibold text-gray-900 hover:text-blue-600 truncate block">
+                                <Link to={`/property/${listing.id}`} className="font-semibold text-gray-900 hover:text-brand-green truncate block">
                                     {listing.title}
                                 </Link>
                                 <p className="text-sm text-gray-500 truncate">{listing.address}</p>

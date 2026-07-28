@@ -198,7 +198,7 @@ function PropertyDetails({ properties, user }) {
                                         <>
                                             <button
                                                 onClick={handleChat}
-                                                className="w-full bg-green-500 text-white font-semibold py-3 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
+                                                className="w-full bg-brand-green text-white font-semibold py-3 rounded-lg hover:bg-brand-green-dark transition-colors flex items-center justify-center gap-2"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -208,7 +208,7 @@ function PropertyDetails({ properties, user }) {
                                             <button
                                                 onClick={handleContactClick}
                                                 disabled={loadingContact}
-                                                className="w-full border-2 border-green-500 text-green-500 font-semibold py-3 rounded-lg hover:bg-green-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                                className="w-full border-2 border-brand-green text-brand-green font-semibold py-3 rounded-lg hover:bg-brand-cream transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -220,8 +220,8 @@ function PropertyDetails({ properties, user }) {
                                 </div>
 
                                 {showContact && ownerData?.contactNumber && (
-                                    <div className="mt-4 bg-blue-50 p-3 rounded-lg">
-                                        <a href={`tel:${ownerData.contactNumber}`} className="font-semibold text-blue-600">
+                                    <div className="mt-4 bg-brand-sand p-3 rounded-lg">
+                                        <a href={`tel:${ownerData.contactNumber}`} className="font-semibold text-brand-green">
                                             {ownerData.contactNumber}
                                         </a>
                                     </div>
@@ -344,7 +344,7 @@ function PropertyDetails({ properties, user }) {
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {highlightsList.map((highlight) => (
                                     <div key={highlight} className="flex items-center gap-2 text-sm">
-                                        <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg className="w-4 h-4 text-brand-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                         </svg>
                                         <span className="text-gray-700">{highlight}</span>
@@ -387,7 +387,7 @@ function PropertyDetails({ properties, user }) {
                         {/* Report Section */}
                         <div className="text-center py-4">
                             <button className="text-gray-500 text-sm hover:text-gray-700">
-                                Found wrong information? <span className="text-blue-600 font-semibold">Report Listing</span>
+                                Found wrong information? <span className="text-brand-green font-semibold">Report Listing</span>
                             </button>
                         </div>
                     </div>

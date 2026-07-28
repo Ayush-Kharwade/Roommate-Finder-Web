@@ -308,17 +308,17 @@ function AllListings({  user, userProfile }) {
 
                 <div className="mt-4 mb-8 border-b border-gray-200">
                     <div className="flex space-x-8">
-                        <button onClick={() => setActiveTab('rooms')} className={`py-4 px-1 border-b-2 font-semibold ${activeTab === 'rooms' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                        <button onClick={() => setActiveTab('rooms')} className={`py-4 px-1 border-b-2 font-semibold ${activeTab === 'rooms' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
                             Rooms
                         </button>
-                        <button onClick={() => setActiveTab('roommates')} className={`py-4 px-1 border-b-2 font-semibold ${activeTab === 'roommates' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                        <button onClick={() => setActiveTab('roommates')} className={`py-4 px-1 border-b-2 font-semibold ${activeTab === 'roommates' ? 'border-brand-green text-brand-green' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
                             Roommates
                         </button>
                     </div>
                 </div>
                 
                 {/* Filter Bar */}
-                <div className="flex flex-col md:flex-row gap-4 mb-8 p-4 bg-gray-50 rounded-lg border">
+                <div className="flex flex-col md:flex-row gap-4 mb-8 p-4 bg-brand-cream rounded-lg border">
                     {/* Search Input with Autosuggest */}
                     <div className="w-full md:flex-1 relative">
                         <div className="flex gap-2">
@@ -359,7 +359,7 @@ function AllListings({  user, userProfile }) {
                             </div>
                             <button
                                 onClick={handleSearchSubmit}
-                                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+                                className="px-6 py-2 bg-brand-green text-white rounded-md hover:bg-brand-green-dark transition-colors font-medium"
                             >
                                 Search
                             </button>
@@ -389,17 +389,17 @@ function AllListings({  user, userProfile }) {
 
                 {/* Show active search info */}
                 {searchLocation && (
-                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+                    <div className="mb-4 p-3 bg-brand-sand border border-brand-green/20 rounded-lg flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 text-brand-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
-                            <span className="text-blue-800 font-medium">
+                            <span className="text-brand-ink font-medium">
                                 Showing properties within {MAX_DISTANCE_KM}km of {searchTerm.split(',')[0]}
                             </span>
                         </div>
-                        <span className="text-blue-600 text-sm">
+                        <span className="text-brand-green text-sm">
                             {displayedProperties.length} found
                         </span>
                     </div>
@@ -409,16 +409,16 @@ function AllListings({  user, userProfile }) {
                     <>
                         {isOffline ? (
                             <div className="text-center py-12 bg-amber-50 rounded-lg">
-                                <h3 className="text-xl font-semibold text-gray-700 mb-2">You're offline</h3>
+                                <h3 className="text-xl font-semibold text-brand-ink mb-2">You're offline</h3>
                                 <p className="text-gray-500">Check your internet connection — listings will load once you're back.</p>
                             </div>
                         ) :fetchError ? (
                             <div className="text-center py-12 bg-red-50 rounded-lg">
-                                <h3 className="text-xl font-semibold text-gray-700 mb-2">Couldn't load listings</h3>
+                                <h3 className="text-xl font-semibold text-brand-ink mb-2">Couldn't load listings</h3>
                                 <p className="text-gray-500 mb-4">Check your connection and try again.</p>
                                 <button
                                     onClick={() => { setFetchError(false); setDataLoading(true); fetchProperties(false); }}
-                                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                    className="px-6 py-2 bg-brand-green text-white rounded-lg hover:bg-brand-green-dark"
                                 >
                                     Retry
                                 </button>
@@ -430,11 +430,11 @@ function AllListings({  user, userProfile }) {
                             <p className="text-gray-500 mt-4">Loading listings...</p>
                         </div>
                         ) : displayedProperties.length === 0 ? (
-                            <div className="text-center py-12 bg-gray-50 rounded-lg">
+                            <div className="text-center py-12 bg-brand-cream rounded-lg">
                                 <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
-                                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                                <h3 className="text-xl font-semibold text-brand-ink mb-2">
                                     {searchLocation ? 'No Properties Found Nearby' : 'No Properties Available'}
                                 </h3>
                                 <p className="text-gray-500">
@@ -445,7 +445,7 @@ function AllListings({  user, userProfile }) {
                                 {searchLocation && (
                                     <button
                                         onClick={handleClearSearch}
-                                        className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                        className="mt-4 px-6 py-2 bg-brand-green text-white rounded-md hover:bg-brand-green-dark transition-colors"
                                     >
                                         Clear Search
                                     </button>
@@ -502,7 +502,7 @@ function AllListings({  user, userProfile }) {
                             <div className="text-center mt-8">
                                 <button
                                     onClick={() => fetchProperties(true)}
-                                    className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                                    className="px-8 py-3 bg-brand-green text-white font-semibold rounded-lg hover:bg-brand-green-dark transition-colors"
                                 >
                                     Load More
                                 </button>
@@ -514,11 +514,11 @@ function AllListings({  user, userProfile }) {
                 {(activeTab === 'roommates') && (
                     <div>
                         {filteredSeekers.length === 0 ? (
-                            <div className="text-center py-12 bg-gray-50 rounded-lg">
+                            <div className="text-center py-12 bg-brand-cream rounded-lg">
                                 <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
-                                <h3 className="text-xl font-semibold text-gray-700 mb-2">No Roommates Found</h3>
+                                <h3 className="text-xl font-semibold text-brand-ink mb-2">No Roommates Found</h3>
                                 <p className="text-gray-500">Try adjusting your filters or check back later!</p>
                             </div>
                         ) : (

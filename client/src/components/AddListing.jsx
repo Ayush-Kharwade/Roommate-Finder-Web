@@ -234,7 +234,7 @@ function AddListing() {
                             <label className="block text-sm font-medium text-gray-700 mb-2">Looking For</label>
                             <div className="flex gap-2">
                                 {['Female', 'Male', 'Any'].map(gender => (
-                                    <button type="button" key={gender} onClick={() => setFormData({...formData, lookingForGender: gender})} className={`px-4 py-2 rounded-md flex-1 transition-colors ${formData.lookingForGender === gender ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>{gender}</button>
+                                    <button type="button" key={gender} onClick={() => setFormData({...formData, lookingForGender: gender})} className={`px-4 py-2 rounded-md flex-1 transition-colors ${formData.lookingForGender === gender ? 'bg-brand-green text-white' : 'bg-gray-200'}`}>{gender}</button>
                                 ))}
                             </div>
                         </div>
@@ -242,7 +242,7 @@ function AddListing() {
                             <label className="block text-sm font-medium text-gray-700 mb-2">Occupancy</label>
                             <div className="flex gap-2">
                                 {['Single', 'Shared', 'Any'].map(type => (
-                                    <button type="button" key={type} onClick={() => setFormData({...formData, occupancy: type})} className={`px-4 py-2 rounded-md flex-1 transition-colors ${formData.occupancy === type ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>{type}</button>
+                                    <button type="button" key={type} onClick={() => setFormData({...formData, occupancy: type})} className={`px-4 py-2 rounded-md flex-1 transition-colors ${formData.occupancy === type ? 'bg-brand-green text-white' : 'bg-gray-200'}`}>{type}</button>
                                 ))}
                             </div>
                         </div>
@@ -281,7 +281,7 @@ function AddListing() {
                                         <div className="flex justify-center text-sm text-gray-600">
                                             <label
                                                 htmlFor="file-upload"
-                                                className="cursor-pointer bg-white font-medium text-blue-600 hover:text-blue-500"
+                                                className="cursor-pointer bg-white font-medium text-brand-green hover:text-brand-green"
                                             >
                                                 <span>Upload up to 3 files</span>
                                                 <input
@@ -329,7 +329,7 @@ function AddListing() {
                                     <div className="text-center">
                                         <label
                                             htmlFor="file-upload"
-                                            className="cursor-pointer text-blue-600 hover:text-blue-500 font-medium text-sm"
+                                            className="cursor-pointer text-brand-green hover:text-brand-green font-medium text-sm"
                                         >
                                             Change photos
                                             <input
@@ -352,7 +352,7 @@ function AddListing() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Choose highlights for your room</label>
                         <div className="flex flex-wrap gap-2">
                             {highlightOptions.map(highlight => (
-                                <button type="button" key={highlight} onClick={() => handleTagToggle('highlights', highlight)} className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${formData.highlights.includes(highlight) ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}`}>{highlight}</button>
+                                <button type="button" key={highlight} onClick={() => handleTagToggle('highlights', highlight)} className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${formData.highlights.includes(highlight) ? 'bg-brand-green/40 text-brand-ink' : 'bg-gray-100 text-gray-600'}`}>{highlight}</button>
                             ))}
                         </div>
                     </div>
@@ -362,7 +362,7 @@ function AddListing() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Amenities</label>
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                             {amenityOptions.map(amenity => (
-                                <button type="button" key={amenity.name} onClick={() => handleTagToggle('amenities', amenity.name)} className={`p-4 flex flex-col items-center gap-2 rounded-lg border-2 transition-colors ${formData.amenities.includes(amenity.name) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                                <button type="button" key={amenity.name} onClick={() => handleTagToggle('amenities', amenity.name)} className={`p-4 flex flex-col items-center gap-2 rounded-lg border-2 transition-colors ${formData.amenities.includes(amenity.name) ? 'border-brand-green bg-brand-sand' : 'border-gray-200'}`}>
                                     <span className="text-3xl">{amenity.emoji}</span>
                                     <span className="text-xs font-medium">{amenity.name}</span>
                                 </button>
@@ -378,7 +378,7 @@ function AddListing() {
 
                     {/* Submit Button */}
                     <div className="text-center">
-                        <button type="submit" disabled={isLoading} className="w-full md:w-auto px-12 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-blue-300 transition-colors">
+                        <button type="submit" disabled={isLoading} className="w-full md:w-auto px-12 py-3 bg-brand-green text-white font-bold rounded-lg hover:bg-brand-green-dark disabled:bg-brand-green/40 transition-colors">
                             {isLoading ? <ClipLoader size={20} color={"#fff"} /> : 'Submit'}
                         </button>
                     </div>

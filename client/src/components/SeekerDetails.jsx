@@ -121,13 +121,13 @@ function SeekerDetails({ user }) {
                             <div className="mt-6 flex gap-4">
                                 <button 
                                     onClick={handleChat}
-                                    className="flex-1 bg-green-500 text-white font-semibold py-3 rounded-lg hover:bg-green-600 transition-colors"
+                                    className="flex-1 bg-brand-green text-white font-semibold py-3 rounded-lg hover:bg-brand-green-dark transition-colors"
                                 >
                                     Chat
                                 </button>
                                 <button 
                                     onClick={handleContactClick}
-                                    className="flex-1 border-2 border-green-500 text-green-500 font-semibold py-3 rounded-lg hover:bg-green-50 transition-colors"
+                                    className="flex-1 border-2 border-brand-green text-brand-green font-semibold py-3 rounded-lg hover:bg-brand-cream transition-colors"
                                 >
                                     Call
                                 </button>
@@ -167,7 +167,7 @@ function SeekerDetails({ user }) {
                                 <div className="flex flex-wrap gap-3">
                                     {displayedHighlights.map((highlight) => (
                                         <div key={highlight} className="flex items-center gap-2 text-sm bg-gray-100 px-3 py-1 rounded-full">
-                                            <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <svg className="w-4 h-4 text-brand-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                             </svg>
                                             <span className="text-gray-700 font-medium">{highlight}</span>

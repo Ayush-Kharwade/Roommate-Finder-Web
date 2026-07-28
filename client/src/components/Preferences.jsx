@@ -81,7 +81,7 @@ function Preferences() {
               onClick={() => handleSelect(option.name)}
               className={`flex items-center px-4 py-2 rounded-full cursor-pointer transition-all duration-200 text-sm font-semibold
                 ${isSelected 
-                  ? 'bg-indigo-600 text-white shadow-lg transform scale-105' 
+                  ? 'bg-brand-green text-white shadow-lg transform scale-105' 
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
             >
               <span className="mr-2 text-lg">{option.emoji}</span>
@@ -94,7 +94,7 @@ function Preferences() {
       <div className="text-center mt-10">
         <button
           onClick={handleUpdate}
-          className="bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition-transform transform hover:scale-105"
+          className="bg-brand-green text-white font-bold py-3 px-8 rounded-full hover:bg-brand-green-dark transition-transform transform hover:scale-105"
         >
           Update Preferences
         </button>

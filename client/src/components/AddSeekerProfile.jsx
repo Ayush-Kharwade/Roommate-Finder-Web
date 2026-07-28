@@ -137,7 +137,7 @@ function AddSeekerProfile() {
                             <label className="block text-sm font-medium text-gray-700 mb-2">Your Gender</label>
                             <div className="flex gap-2">
                                 {['Female', 'Male', 'Any'].map(gender => (
-                                    <button type="button" key={gender} onClick={() => setFormData({...formData, gender})} className={`px-4 py-2 rounded-md flex-1 transition-colors ${formData.gender === gender ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>{gender}</button>
+                                    <button type="button" key={gender} onClick={() => setFormData({...formData, gender})} className={`px-4 py-2 rounded-md flex-1 transition-colors ${formData.gender === gender ? 'bg-brand-green text-white' : 'bg-gray-200'}`}>{gender}</button>
                                 ))}
                             </div>
                         </div>
@@ -145,7 +145,7 @@ function AddSeekerProfile() {
                             <label className="block text-sm font-medium text-gray-700 mb-2">Occupancy</label>
                             <div className="flex gap-2">
                                 {['Single', 'Shared', 'Any'].map(type => (
-                                    <button type="button" key={type} onClick={() => setFormData({...formData, occupancy: type})} className={`px-4 py-2 rounded-md flex-1 transition-colors ${formData.occupancy === type ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>{type}</button>
+                                    <button type="button" key={type} onClick={() => setFormData({...formData, occupancy: type})} className={`px-4 py-2 rounded-md flex-1 transition-colors ${formData.occupancy === type ? 'bg-brand-green text-white' : 'bg-gray-200'}`}>{type}</button>
                                 ))}
                             </div>
                         </div>
@@ -162,7 +162,7 @@ function AddSeekerProfile() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Choose highlights for your profile</label>
                         <div className="flex flex-wrap gap-2">
                             {highlightOptions.map(highlight => (
-                                <button type="button" key={highlight} onClick={() => handleTagToggle(highlight)} className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${formData.highlights.includes(highlight) ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}`}>{highlight}</button>
+                                <button type="button" key={highlight} onClick={() => handleTagToggle(highlight)} className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${formData.highlights.includes(highlight) ? 'bg-brand-green/40 text-brand-ink' : 'bg-gray-100 text-gray-600'}`}>{highlight}</button>
                             ))}
                         </div>
                     </div>
@@ -175,7 +175,7 @@ function AddSeekerProfile() {
 
                     {/* Submit Button */}
                     <div className="text-center">
-                        <button type="submit" disabled={isLoading} className="w-full md:w-auto px-12 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-blue-300 transition-colors">
+                        <button type="submit" disabled={isLoading} className="w-full md:w-auto px-12 py-3 bg-brand-green text-white font-bold rounded-lg hover:bg-brand-green-dark disabled:bg-brand-green/40 transition-colors">
                             {isLoading ? <ClipLoader size={20} color={"#fff"} /> : 'Submit'}
                         </button>
                     </div>

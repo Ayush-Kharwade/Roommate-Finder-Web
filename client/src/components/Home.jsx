@@ -3,26 +3,29 @@ import { Link, useNavigate } from 'react-router-dom';
 
 // Enhanced Feature Card with hover effects
 const FeatureCard = ({ icon, title, description }) => (
-  <div className="bg-white p-8 rounded-xl border border-[#E8DFD0] hover:border-[#F5A623] transition-colors text-center">
-    <div className="mx-auto bg-[#1B4D3E]/10 text-[#1B4D3E] w-16 h-16 rounded-full flex items-center justify-center">
+  <div className="bg-white p-8 rounded-xl border border-brand-sand hover:border-brand-marigold transition-colors text-center">
+    <div className="mx-auto bg-brand-green/10 text-brand-green w-16 h-16 rounded-full flex items-center justify-center">
       {icon}
     </div>
-    <h3 className="text-lg font-bold mt-6 text-[#2D2A26]">{title}</h3>
-    <p className="text-[#2D2A26]/70 mt-3 leading-relaxed text-sm">{description}</p>
+    <h3 className="text-lg font-bold mt-6 text-brand-ink">{title}</h3>
+    <p className="text-brand-ink/70 mt-3 leading-relaxed text-sm">{description}</p>
   </div>
 );
 
-// City Card Component
-const CityCard = ({ name, image, propertyCount, onClick }) => (
-  <button 
+const CityCard = ({ name, image, onClick }) => (
+  <button
     onClick={onClick}
-    className="relative rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 h-64 group w-full"
+    className="relative rounded-xl overflow-hidden h-64 group w-full text-left"
   >
-    <div 
-      className="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-500"
+    <div
+      className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
       style={{ backgroundImage: `url(${image})` }}
     >
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
+    </div>
+    <div className="absolute bottom-0 left-0 right-0 p-6">
+      <h3 className="font-serif text-white text-2xl font-bold">{name}</h3>
+      <p className="text-brand-marigold text-sm font-medium mt-1">Explore rooms →</p>
     </div>
   </button>
 );
@@ -30,10 +33,10 @@ const CityCard = ({ name, image, propertyCount, onClick }) => (
 // Stats Counter Component
 const StatCard = ({ number, label }) => (
   <div className="text-center">
-    <p className="font-serif text-5xl md:text-6xl font-bold text-[#1B4D3E]">
+    <p className="font-serif text-5xl md:text-6xl font-bold text-brand-green">
       {number}
     </p>
-    <p className="text-[#2D2A26]/70 mt-2 font-medium">{label}</p>
+    <p className="text-brand-ink/70 mt-2 font-medium">{label}</p>
   </div>
 );
 
@@ -127,12 +130,12 @@ function Home() {
 
                 <div className="container mx-auto max-w-6xl relative z-10">
                     <div className="max-w-2xl">
-                        <p className="text-[#F5A623] font-semibold tracking-wide uppercase text-sm mb-4">
+                        <p className="text-brand-marigold font-semibold tracking-wide uppercase text-sm mb-4">
                             No brokers · Connect directly
                         </p>
                         <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] mb-6 text-white">
                             A room that feels like{' '}
-                            <span className="text-[#F5A623]">home</span>
+                            <span className="text-brand-marigold">home</span>
                         </h1>
                         <p className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed">
                             Find rooms, PGs, and flatmates you'll actually get along with — across India, with no middlemen.
@@ -145,7 +148,7 @@ function Home() {
                                     <input
                                         type="text"
                                         placeholder="Search by city, locality, or landmark…"
-                                        className="w-full px-5 py-4 border-none rounded-xl text-[#2D2A26] focus:outline-none focus:ring-2 focus:ring-[#1B4D3E] text-base"
+                                        className="w-full px-5 py-4 border-none rounded-xl text-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-green text-base"
                                         value={searchTerm}
                                         onChange={handleSearchChange}
                                         onFocus={() => searchTerm && setShowSuggestions(true)}
@@ -158,13 +161,13 @@ function Home() {
                                                     key={index}
                                                     type="button"
                                                     onClick={() => handleSuggestionClick(suggestion)}
-                                                    className="w-full px-5 py-3 text-left hover:bg-[#FBF7F0] transition-colors flex items-center gap-3 border-b border-gray-50 last:border-b-0"
+                                                    className="w-full px-5 py-3 text-left hover:bg-brand-cream transition-colors flex items-center gap-3 border-b border-gray-50 last:border-b-0"
                                                 >
-                                                    <svg className="w-5 h-5 text-[#1B4D3E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg className="w-5 h-5 text-brand-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     </svg>
-                                                    <span className="text-[#2D2A26] font-medium">{suggestion}</span>
+                                                    <span className="text-brand-ink font-medium">{suggestion}</span>
                                                 </button>
                                             ))}
                                         </div>
@@ -172,7 +175,7 @@ function Home() {
                                 </div>
                                 <button
                                     type="submit"
-                                    className="bg-[#F5A623] text-[#2D2A26] font-bold px-8 py-4 rounded-xl hover:bg-[#e0951a] transition-colors"
+                                    className="bg-brand-marigold text-brand-ink font-bold px-8 py-4 rounded-xl hover:bg-brand-marigold-dark transition-colors"
                                 >
                                     Search
                                 </button>
@@ -197,14 +200,14 @@ function Home() {
             </div>
 
             {/* --- Enhanced Why Choose Us Section --- */}
-            <div className="py-24 bg-[#FBF7F0]">
+            <div className="py-24 bg-brand-cream">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-16">
-                        <p className="text-[#F5A623] font-semibold tracking-wide uppercase text-sm mb-3">Why us</p>
-                        <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-[#2D2A26]">
+                        <p className="text-brand-marigold font-semibold tracking-wide uppercase text-sm mb-3">Why us</p>
+                        <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-brand-ink">
                             Finding a home shouldn't feel like a gamble
                         </h2>
-                        <p className="text-lg text-[#2D2A26]/70 max-w-2xl mx-auto">
+                        <p className="text-lg text-brand-ink/70 max-w-2xl mx-auto">
                             We're building the simplest, most direct way to find rooms and flatmates across India.
                         </p>
                     </div>
@@ -224,8 +227,8 @@ function Home() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                 </svg>
                             } 
-                            title="Smart Matching" 
-                            description="Our AI-powered algorithm matches you with compatible roommates based on lifestyle and preferences." 
+                            title="Compatibility First" 
+                            description="Filter by lifestyle, budget, and preferences to find people you'll actually get along with." 
                         />
                         <FeatureCard 
                             icon={
@@ -233,8 +236,8 @@ function Home() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                             } 
-                            title="Easy Agreements" 
-                            description="Get rental agreements made easy, quick and affordable with our streamlined process." 
+                            title="Free to Use" 
+                            description="No listing fees, no subscription, no commission. Free while we build this together." 
                         />
                         <FeatureCard 
                             icon={
@@ -252,9 +255,9 @@ function Home() {
             
 
             {/* --- Enhanced Social Proof Section --- */}
-            <div className="py-24 bg-[#E8DFD0]">
+            <div className="py-24 bg-brand-sand">
                 <div className="container mx-auto px-4">
-                    <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-center text-[#2D2A26]">
+                    <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-center text-brand-ink">
                         Get in early
                     </h2>
                     <p className="text-xl text-gray-600 text-center max-w-2xl mx-auto mb-16">
@@ -272,7 +275,7 @@ function Home() {
             <div className="py-24 bg-white">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-16">
-                       <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-[#2D2A26]">
+                       <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4 text-brand-ink">
                             View rooms in Popular Cities
                         </h2>
                         <p className="text-xl text-gray-600">
@@ -293,7 +296,7 @@ function Home() {
                     <div className="text-center mt-12">
                         <Link 
                             to="/listings"
-                            className="inline-flex items-center bg-[#1B4D3E] text-white font-bold px-8 py-4 rounded-xl hover:bg-[#153c30] transition-colors"
+                            className="inline-flex items-center bg-brand-green text-white font-bold px-8 py-4 rounded-xl hover:bg-brand-green-dark transition-colors"
                         >
                             View All Cities
                             <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -304,23 +307,8 @@ function Home() {
                 </div>
             </div>
             
-            {/* --- Early Community Section --- */}
-            <div className="py-24 bg-gray-50">
-                <div className="container mx-auto px-4 text-center">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-                        Your Story Starts Here
-                    </h2>
-                    <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-                        We're a new community. Be one of the first to find your room or roommate — and tell us how it goes.
-                    </p>
-                    <a href="/signup" className="inline-flex items-center bg-blue-600 text-white font-bold px-8 py-4 rounded-xl hover:bg-blue-700 transition-all">
-                        Join the community
-                    </a>
-                </div>
-            </div>
-
             {/* --- Final CTA --- */}
-            <div className="py-24 bg-[#1B4D3E] text-white">
+            <div className="py-24 bg-brand-green text-white">
                 <div className="container mx-auto px-4 text-center">
                     <h2 className="font-serif text-4xl md:text-5xl font-bold mb-6">
                         Your next home is a search away
@@ -329,7 +317,7 @@ function Home() {
                         Be one of the first to find your room or flatmate — and help shape what this becomes.
                     </p>
                     <div className="flex flex-wrap gap-4 justify-center">
-                        <Link to="/signup" className="bg-[#F5A623] text-[#2D2A26] font-bold px-10 py-4 rounded-xl hover:bg-[#e0951a] transition-colors text-lg">
+                        <Link to="/signup" className="bg-brand-marigold text-brand-ink font-bold px-10 py-4 rounded-xl hover:bg-brand-marigold-dark transition-colors text-lg">
                             Get started
                         </Link>
                         <Link to="/listings" className="bg-transparent border-2 border-white/40 text-white font-bold px-10 py-4 rounded-xl hover:bg-white/10 transition-colors text-lg">

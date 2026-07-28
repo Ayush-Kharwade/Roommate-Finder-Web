@@ -68,7 +68,7 @@ function SeekerCard({ seeker, distance, match }) {
           {distance ? `${distance} km from your location` : 'Distance unavailable'}
         </p>
         <div className="flex items-center">
-          <span className="text-green-600 font-bold">{match}% Match</span>
+          <span className="text-brand-green font-bold">{match}% Match</span>
           <div className="ml-4 flex space-x-3">
             <button 
               onClick={handleChat}

@@ -133,13 +133,13 @@ function Profile() {
                     <div className="mb-6">
                         <label className="block text-gray-700 font-semibold mb-2">Gender</label>
                         <div className="flex gap-4">
-                            <button type="button" disabled={!isOwnProfile} onClick={() => setProfileData({ ...profileData, gender: 'Male' })} className={`px-6 py-2 rounded-full ${profileData.gender === 'Male' ? 'bg-blue-500 text-white' : 'bg-gray-200'} disabled:opacity-60`}>Male</button>
+                            <button type="button" disabled={!isOwnProfile} onClick={() => setProfileData({ ...profileData, gender: 'Male' })} className={`px-6 py-2 rounded-full ${profileData.gender === 'Male' ? 'bg-brand-green text-white' : 'bg-gray-200'} disabled:opacity-60`}>Male</button>
                             <button type="button" disabled={!isOwnProfile} onClick={() => setProfileData({ ...profileData, gender: 'Female' })} className={`px-6 py-2 rounded-full ${profileData.gender === 'Female' ? 'bg-pink-500 text-white' : 'bg-gray-200'} disabled:opacity-60`}>Female</button>
                         </div>
                     </div>
 
                     {isOwnProfile && (
-                        <button type="submit" className="w-full bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-colors">
+                        <button type="submit" className="w-full bg-brand-green text-white font-bold py-3 px-6 rounded-lg hover:bg-brand-green-dark transition-colors">
                             Save Changes
                         </button>
                     )}

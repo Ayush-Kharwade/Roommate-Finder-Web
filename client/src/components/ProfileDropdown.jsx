@@ -24,7 +24,7 @@ function ProfileDropdown({ user, userProfile, handleLogout }) {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)} 
-        className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 overflow-hidden"
+        className="w-10 h-10 rounded-full bg-brand-sand flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-green overflow-hidden"
       >
         <img src={avatarSrc} alt="Profile" className="w-full h-full object-cover" />
       </button>
@@ -32,22 +32,22 @@ function ProfileDropdown({ user, userProfile, handleLogout }) {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl py-4 z-20">
           <div className="px-6 mb-4">
-            <p className="text-lg font-semibold text-gray-800">Hi, {greetingName}</p>
+            <p className="text-lg font-semibold text-brand-ink">Hi, {greetingName}</p>
           </div>
 
-          <Link to="/preferences" className="block px-6 py-2 text-md text-green-500 font-semibold hover:bg-gray-100" onClick={() => setIsOpen(false)}>
+          <Link to="/preferences" className="block px-6 py-2 text-md text-brand-green font-semibold hover:bg-gray-100" onClick={() => setIsOpen(false)}>
             My Preferences
           </Link>
-          <Link to="/notifications" className="block px-6 py-2 text-md text-gray-700 hover:bg-gray-100" onClick={() => setIsOpen(false)}>
+          <Link to="/notifications" className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
             My Notifications
           </Link>
-          <Link to="/my-listings" className="block px-6 py-2 text-md text-gray-700 hover:bg-gray-100" onClick={() => setIsOpen(false)}>
+          <Link to="/my-listings" className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
               My Listings
           </Link>
-          <Link to={`/profile/${user.uid}`} className="block px-6 py-2 text-md text-gray-700 hover:bg-gray-100" onClick={() => setIsOpen(false)}>
+          <Link to={`/profile/${user.uid}`} className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
             My Profile
           </Link>
-          <Link to="#" className="block px-6 py-2 text-md text-gray-700 hover:bg-gray-100">
+          <Link to="#" className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream">
             Need Help?
           </Link>
           
@@ -58,7 +58,7 @@ function ProfileDropdown({ user, userProfile, handleLogout }) {
               setIsOpen(false);
               handleLogout();
             }}
-            className="w-full text-left block px-6 py-2 text-md text-red-600 hover:bg-gray-100"
+            className="w-full text-left block px-6 py-2 text-md text-red-600 hover:bg-brand-cream"
           >
             Logout
           </button>

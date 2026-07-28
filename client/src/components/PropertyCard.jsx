@@ -33,7 +33,7 @@ function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, 
                 </div>
                 <div className="flex-grow min-w-0">
                     <div>
-                        <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate"> {name}</h3>
+                        <h3 className="text-base sm:text-lg font-bold text-brand-ink truncate"> {name}</h3>
                         <p className="text-sm text-gray-500 truncate"> {location}</p>
                     </div>
                     <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs text-gray-700">
@@ -49,7 +49,7 @@ function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, 
                     {distanceInKm ? `${distanceInKm} km from your location` : 'Distance unavailable'}
                 </p>
                 <div className="flex items-center">
-                    <span className="text-green-600 font-bold">{match}% Match</span>
+                    <span className="text-brand-green font-bold">{match}% Match</span>
                     <div className="ml-4 flex space-x-3">
                         {/* 3. FIX THE BUTTONS */}
                         <button 
