@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from 'firebase/auth';
 import toast from 'react-hot-toast';
 import { Menu, X } from 'lucide-react';
 import ProfileDropdown from './ProfileDropdown.jsx';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
+import { isUnread } from '../utils/chat';
 
 const SearchIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -15,6 +18,7 @@ function Navbar({ user, userProfile }) {
   const auth = getAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleLogout = () => {
     signOut(auth).then(() => {
@@ -27,6 +31,34 @@ function Navbar({ user, userProfile }) {
   };
 
   const closeMenu = () => setMenuOpen(false);
+
+  useEffect(() => {
+      if (!user) {
+          setUnreadCount(0);
+          return;
+      }
+
+      const q = query(
+          collection(db, 'chats'),
+          where('participants', 'array-contains', user.uid)
+      );
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+          let count = 0;
+
+          snapshot.forEach((doc) => {
+              const chat = doc.data();
+
+              if (isUnread(chat, user.uid)) {
+                  count++;
+              }
+          });
+
+          setUnreadCount(count);
+      });
+
+      return unsubscribe;
+  }, [user]);
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -56,7 +88,7 @@ function Navbar({ user, userProfile }) {
             <div className="border-l border-brand-sand h-8"></div>
 
             {user ? (
-              <ProfileDropdown user={user} userProfile={userProfile} handleLogout={handleLogout} />
+              <ProfileDropdown user={user} userProfile={userProfile} handleLogout={handleLogout} unreadCount={unreadCount} />
             ) : (
               <div className="flex items-center space-x-2">
                 <Link to="/signup" className="text-brand-ink font-medium hover:text-brand-green px-3 py-2">Join Community</Link>
@@ -98,6 +130,15 @@ function Navbar({ user, userProfile }) {
                 + Add Listing
               </Link>
             )}
+
+            <Link to="/chats" className="flex items-center justify-between px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
+                <span>Messages</span>
+                {unreadCount > 0 && (
+                    <span className="bg-brand-marigold text-brand-ink text-xs font-bold px-2 py-0.5 rounded-full">
+                        {unreadCount}
+                    </span>
+                )}
+            </Link>
 
             {user ? (
               <>

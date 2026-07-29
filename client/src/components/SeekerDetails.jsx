@@ -58,12 +58,26 @@ function SeekerDetails({ user }) {
         }
     }, [id]);
 
-    const handleChat = () => {
+    const handleChat = async () => {
         if (!user) return toast.error("Please log in to start a chat.");
         if (!seeker?.id) return toast.error("Seeker information is not available.");
         if (user.uid === seeker.id) return toast.error("You cannot start a chat with yourself.");
-        const chatId = user.uid > seeker.id ? `${user.uid}_${seeker.id}` : `${seeker.id}_${user.uid}`;
-        navigate(`/chat/${chatId}`);
+
+        try {
+            const chatId = await getOrCreateChat({
+                currentUser: user,
+                otherUser: {
+                    uid: seeker.id,
+                    name: seeker.name,
+                    photoUrl: seeker.profilePicUrl,
+                },
+                context: {},
+            });
+            navigate(`/chat/${chatId}`);
+        } catch (err) {
+            console.error('Failed to start chat:', err);
+            toast.error("Could not start the chat. Please try again.");
+        }
     };
     
     const handleContactClick = () => {

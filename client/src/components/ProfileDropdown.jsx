@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
-function ProfileDropdown({ user, userProfile, handleLogout }) {
+function ProfileDropdown({ user, userProfile, handleLogout, unreadCount }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -27,6 +27,10 @@ function ProfileDropdown({ user, userProfile, handleLogout }) {
         className="w-10 h-10 rounded-full bg-brand-sand flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-green overflow-hidden"
       >
         <img src={avatarSrc} alt="Profile" className="w-full h-full object-cover" />
+
+        {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-brand-marigold rounded-full border-2 border-white" />
+        )}
       </button>
 
       {isOpen && (
@@ -41,11 +45,19 @@ function ProfileDropdown({ user, userProfile, handleLogout }) {
           <Link to="/notifications" className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
             My Notifications
           </Link>
+          <Link to={`/profile/${user.uid}`} className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
+            My Profile
+          </Link>
           <Link to="/my-listings" className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
               My Listings
           </Link>
-          <Link to={`/profile/${user.uid}`} className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
-            My Profile
+          <Link to="/chats" className="flex items-center justify-between px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
+              <span>Messages</span>
+              {unreadCount > 0 && (
+                  <span className="bg-brand-marigold text-brand-ink text-xs font-bold px-2 py-0.5 rounded-full">
+                      {unreadCount}
+                  </span>
+              )}
           </Link>
           <Link to="#" className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream">
             Need Help?

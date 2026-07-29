@@ -23,6 +23,8 @@ import SeekerDetails from './components/SeekerDetails.jsx';
 import ListingChoice from './components/ListingChoice.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import MyListings from './components/MyListings.jsx';
+import ChatRoom from './components/ChatRoom.jsx';
+import ChatList from './components/ChatList.jsx';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -79,6 +81,8 @@ function App() {
         <Route path="/notifications" element={<ProtectedRoute user={user}><Notifications /></ProtectedRoute>} />
         <Route path="/profile/:userId" element={<ProtectedRoute user={user}><Profile /></ProtectedRoute>} />
         <Route path="/my-listings" element={<ProtectedRoute user={user}><MyListings /></ProtectedRoute>} />
+        <Route path="/chat/:chatId" element={<ProtectedRoute user={user}><ChatRoom /></ProtectedRoute>} />
+        <Route path="/chats" element={<ProtectedRoute user={user}><ChatList /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />
