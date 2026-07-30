@@ -2,10 +2,21 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
-import { getDistance } from 'geolib'; // 1. Import the calculation function
+import { getDistance } from 'geolib'; 
+import { useSavedListings } from '../hooks/useSavedListings';
 
 function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, owner, lat, lng, userLocation, user }) {
     const navigate = useNavigate();
+
+    const { savedIds, toggleSave } = useSavedListings();
+    const isSaved = savedIds.has(id);
+
+    const handleSaveClick = (e) => {
+        // The whole card is a <Link> — without these, clicking the heart navigates
+        e.preventDefault();
+        e.stopPropagation();
+        toggleSave(id);
+    };
 
 
     const handleContactClick = () => {
@@ -26,8 +37,18 @@ function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, 
     return (
         <Link 
             to={`/property/${id}`}
-            className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-            <div className="flex gap-4">
+            className="relative bg-white rounded-lg shadow-lg border border-gray-200 p-4 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+            <button
+                onClick={handleSaveClick}
+                className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-white/90 hover:bg-white transition-colors"
+                aria-label={isSaved ? 'Remove from saved' : 'Save this listing'}
+            >
+                <svg className={`w-5 h-5 ${isSaved ? 'text-brand-marigold' : 'text-gray-400'}`}
+                    fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+            </button>
+            <div className="relative flex gap-4">
                 <div className="flex-shrink-0">
                     <img className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover flex-shrink-0" src={avatarUrl || 'https://placehold.co/300x300/e2e8f0/64748b?text=No+Photo'} alt={name} onError={(e) => { e.target.src = 'https://placehold.co/300x300/e2e8f0/64748b?text=No+Photo'; }} />
                 </div>

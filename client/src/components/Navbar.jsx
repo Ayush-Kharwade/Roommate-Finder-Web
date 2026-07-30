@@ -145,6 +145,9 @@ function Navbar({ user, userProfile }) {
                 <Link to="/my-listings" onClick={closeMenu} className="block px-3 py-3 text-brand-ink font-medium hover:bg-brand-cream rounded-lg">
                     My Listings
                 </Link>
+                <Link to="/saved" className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
+                    Saved
+                </Link>
                 <Link
                   to={`/profile/${user.uid}`}
                   onClick={closeMenu}

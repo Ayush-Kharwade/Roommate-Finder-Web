@@ -51,6 +51,9 @@ function ProfileDropdown({ user, userProfile, handleLogout, unreadCount }) {
           <Link to="/my-listings" className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
               My Listings
           </Link>
+          <Link to="/saved" className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
+            Saved
+          </Link>
           <Link to="/chats" className="flex items-center justify-between px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
               <span>Messages</span>
               {unreadCount > 0 && (
