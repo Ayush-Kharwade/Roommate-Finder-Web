@@ -503,21 +503,7 @@ function AllListings({  user, userProfile }) {
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {displayedProperties.map((property) => {
-                                    const locationToUse = searchLocation || browserLocation;
-                                    let distanceInKm = null;
-
-                                    if (locationToUse && property.lat && property.lng) {
-                                        const distanceInMeters = getDistance(
-                                            locationToUse,
-                                            { latitude: property.lat, longitude: property.lng }
-                                        );
-                                        distanceInKm = (distanceInMeters / 1000).toFixed(1);
-                                    }
-
-                                    if (property.distance && property.distance !== Infinity) {
-                                        distanceInKm = (property.distance / 1000).toFixed(1);
-                                    }
-
+                                    
                                     let matchScore = Math.floor(Math.random() * 20) + 30;
                                     if (userProfile?.preferences && property.listingPreferences?.length > 0) {
                                         const userPrefs = new Set(userProfile.preferences);
@@ -541,7 +527,7 @@ function AllListings({  user, userProfile }) {
                                             userLocation={userLocation}
                                             owner={property.owner}
                                             user={user}
-                                            distance={distanceInKm}
+                                            distance={property.distance}
                                         />
                                     );
                                 })}

@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getDistance } from 'geolib'; 
 import { useSavedListings } from '../hooks/useSavedListings';
 
-function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, owner, lat, lng, userLocation, user }) {
+function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, owner, lat, lng, userLocation, user, distance }) {
     const navigate = useNavigate();
 
     const { savedIds, toggleSave } = useSavedListings();
@@ -24,15 +24,9 @@ function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, 
         navigate(`/property/${id}`);
     };
 
-    // 2. This is the correct distance calculation logic
-    let distanceInKm = null;
-    if (userLocation && lat && lng) {
-        const distanceInMeters = getDistance(
-            { latitude: userLocation.latitude, longitude: userLocation.longitude },
-            { latitude: lat, longitude: lng }
-        );
-        distanceInKm = (distanceInMeters / 1000).toFixed(1); // Convert to km
-    }
+    const distanceInKm = distance != null && distance !== Infinity
+        ? (distance / 1000).toFixed(1)
+        : null;
 
     return (
         <Link 
