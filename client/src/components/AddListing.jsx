@@ -28,7 +28,7 @@ function AddListing() {
         title: '',
         address: '',
         lookingForGender: 'Any',
-        rent: '',
+        rent: 1,
         occupancy: 'Any',
         highlights: [],
         amenities: [],
@@ -160,6 +160,7 @@ function AddListing() {
                 ownerPhotoUrl: currentUser.photoURL || null,
                 imageUrls,
                 imageUrl: imageUrls[0] || null,  // first image as the card thumbnail
+                rent: Number(submissionData.rent) || 0,
                 createdAt: serverTimestamp(),
             };
 

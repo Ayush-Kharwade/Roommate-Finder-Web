@@ -5,15 +5,12 @@ import { getDistance } from 'geolib';
 import SeekerCard from './SeekerCard.jsx';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { collection, getDocs, query, orderBy, limit, startAfter } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, limit, startAfter } from 'firebase/firestore';
 import { db } from '../firebase';
 import ClipLoader from 'react-spinners/ClipLoader';
 import SEO from './SEO.jsx';
 
 const PAGE_SIZE = 24;
-
-//SEO
-<SEO title="Browse Rooms & Roommates" description="Explore rooms, PGs and roommate profiles across India." />
 
 function AllListings({  user, userProfile }) {
     const [searchParams] = useSearchParams();
@@ -34,14 +31,17 @@ function AllListings({  user, userProfile }) {
     const [lastDoc, setLastDoc] = useState(null);
     const [hasMore, setHasMore] = useState(true);
     const [fetchError, setFetchError] = useState(false);
+    const [minRent, setMinRent] = useState('');
+    const [maxRent, setMaxRent] = useState('');
+    const [appliedBudget, setAppliedBudget] = useState({ min: '', max: '' });
+    const [occupancy, setOccupancy] = useState('Any');
+    const [radiusKm, setRadiusKm] = useState(10);
+    const [sortBy, setSortBy] = useState('newest');
 
-
-
-    
-    
-    // Maximum distance to show properties (in km)
-    const MAX_DISTANCE_KM = 10;
-
+    useEffect(() => {
+        const t = setTimeout(() => setAppliedBudget({ min: minRent, max: maxRent }), 600);
+        return () => clearTimeout(t);
+    }, [minRent, maxRent]);
 
     const displayedProperties = useMemo(() => {
         let filtered = [...properties];
@@ -63,9 +63,9 @@ function AllListings({  user, userProfile }) {
                 return { ...property, distance: distanceInMeters };
             });
 
-            // Filter out properties beyond MAX_DISTANCE_KM
+            // Filter out properties beyond radiusKm
             const nearbyProperties = propertiesWithDistance.filter(p => 
-                p.distance !== Infinity && p.distance <= MAX_DISTANCE_KM * 1000
+                p.distance !== Infinity && p.distance <= radiusKm * 1000
             );
 
             // Sort by distance
@@ -82,7 +82,8 @@ function AllListings({  user, userProfile }) {
         // Default: return gender-filtered list
         return filtered;
 
-    }, [searchTerm, genderFilter, searchLocation, properties]);
+    }, [searchTerm, genderFilter,
+    radiusKm, searchLocation, properties]);
 
     // Fetch autocomplete suggestions (only for dropdown, not for filtering)
     useEffect(() => {
@@ -148,11 +149,11 @@ function AllListings({  user, userProfile }) {
                 { latitude: lat, longitude: lng },
                 { latitude: p.lat, longitude: p.lng }
             );
-            return distance <= MAX_DISTANCE_KM * 1000;
+            return distance <= radiusKm * 1000;
         });
 
         if (propertiesInRange.length === 0) {
-            toast.error(`No properties found within ${MAX_DISTANCE_KM}km of ${suggestion.formatted.split(',')[0]}`);
+            toast.error(`No properties found within ${radiusKm}km of ${suggestion.formatted.split(',')[0]}`);
         } else {
             toast.success(`Found ${propertiesInRange.length} properties near ${suggestion.formatted.split(',')[0]}`);
         }
@@ -186,11 +187,11 @@ function AllListings({  user, userProfile }) {
                         { latitude: lat, longitude: lng },
                         { latitude: p.lat, longitude: p.lng }
                     );
-                    return distance <= MAX_DISTANCE_KM * 1000;
+                    return distance <= radiusKm * 1000;
                 });
 
                 if (propertiesInRange.length === 0) {
-                    toast.error(`No properties found within ${MAX_DISTANCE_KM}km of ${locationName.split(',')[0]}`);
+                    toast.error(`No properties found within ${radiusKm}km of ${locationName.split(',')[0]}`);
                 } else {
                     toast.success(`Found ${propertiesInRange.length} properties near ${locationName.split(',')[0]}`);
                 }
@@ -218,30 +219,46 @@ function AllListings({  user, userProfile }) {
             new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), ms))
         ]);
 
+    const buildQuery = (afterDoc = null) => {
+
+        const col = collection(db, 'properties');
+        const constraints = [];
+        if (occupancy !== "Any") {
+            constraints.push(
+                where("occupancy", "==", occupancy)
+            );
+        }
+        const hasBudget = appliedBudget.min !== '' || appliedBudget.max !== '';
+
+        if (hasBudget) {
+            if (appliedBudget.min !== '') constraints.push(where('rent', '>=', Number(appliedBudget.min)));
+            if (appliedBudget.max !== '') constraints.push(where('rent', '<=', Number(appliedBudget.max)));
+            // A range filter requires the first orderBy to be on the same field
+            constraints.push(orderBy('rent', sortBy === 'price-desc' ? 'desc' : 'asc'));
+        } else if (sortBy === 'price-asc') {
+            constraints.push(orderBy('rent', 'asc'));
+        } else if (sortBy === 'price-desc') {
+            constraints.push(orderBy('rent', 'desc'));
+        } else {
+            constraints.push(orderBy('createdAt', 'desc'));
+        }
+
+        if (afterDoc) constraints.push(startAfter(afterDoc));
+        constraints.push(limit(PAGE_SIZE));
+        return query(col, ...constraints);
+    };
+
     const fetchProperties = async (isLoadMore = false) => {
         setFetchError(false);
         setDataLoading(true);
 
         try {
-            let q = query(
-                collection(db, 'properties'),
-                orderBy('createdAt', 'desc'),
-                limit(PAGE_SIZE)
-            );
-            if (isLoadMore && lastDoc) {
-                q = query(
-                    collection(db, 'properties'),
-                    orderBy('createdAt', 'desc'),
-                    startAfter(lastDoc),
-                    limit(PAGE_SIZE)
-                );
-            }
-
+            const q = buildQuery(isLoadMore ? lastDoc : null);
             const snap = await withTimeout(getDocs(q));
             const batch = snap.docs.map(d => ({ ...d.data(), id: d.id }));
 
             setProperties(prev => isLoadMore ? [...prev, ...batch] : batch);
-            setLastDoc(snap.docs[snap.docs.length - 1] || lastDoc);
+            setLastDoc(snap.docs[snap.docs.length - 1] || null);
             setHasMore(snap.docs.length === PAGE_SIZE);
         } catch (err) {
             console.error('Failed to load properties:', err);
@@ -253,7 +270,6 @@ function AllListings({  user, userProfile }) {
     };
 
     useEffect(() => {
-        fetchProperties(false);
         // seekers: same pattern, or fetch all if the set is small
         (async () => {
             try {
@@ -264,6 +280,11 @@ function AllListings({  user, userProfile }) {
             }
         })();
     }, []);
+
+    useEffect(() => {
+        setLastDoc(null);
+        fetchProperties(false);
+    }, [appliedBudget, sortBy, occupancy]);
 
     const filteredSeekers = seekers
         .filter((seeker) => {
@@ -295,7 +316,11 @@ function AllListings({  user, userProfile }) {
 
 
     return (
+        <>
+        <SEO title="Browse Rooms & Roommates" description="Explore rooms, PGs and roommate profiles across India." />
+
         <main className="flex-grow bg-white px-4 py-8">
+
             <div className="container mx-auto max-w-6xl">
 
                 <div className="text-sm text-gray-500 flex items-center space-x-2">
@@ -318,7 +343,7 @@ function AllListings({  user, userProfile }) {
                 </div>
                 
                 {/* Filter Bar */}
-                <div className="flex flex-col md:flex-row gap-4 mb-8 p-4 bg-brand-cream rounded-lg border">
+                <div className="flex flex-col gap-3 mb-8 p-4 bg-brand-cream rounded-lg border">
                     {/* Search Input with Autosuggest */}
                     <div className="w-full md:flex-1 relative">
                         <div className="flex gap-2">
@@ -374,17 +399,41 @@ function AllListings({  user, userProfile }) {
                             )}
                         </div>
                     </div>
-                    
-                    {/* Gender Filter Dropdown */}
-                    <select
-                        value={genderFilter}
-                        onChange={(e) => setGenderFilter(e.target.value)}
-                        className="w-full md:w-auto px-4 py-2 border rounded-md bg-white"
-                    >
-                        <option>Any Gender</option>
-                        <option>Male</option>
-                        <option>Female</option>
-                    </select>
+
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 ">
+                        <select value={genderFilter} onChange={(e) => setGenderFilter(e.target.value)}
+                            className="px-3 py-2 border border-brand-sand rounded-lg bg-white">
+                            <option>Any Gender</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                        </select>
+                        <input type="number" value={minRent} onChange={(e) => setMinRent(e.target.value)}
+                            placeholder="Min rent"
+                            className="px-3 py-2 border border-brand-sand rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" />
+                        <input type="number" value={maxRent} onChange={(e) => setMaxRent(e.target.value)}
+                            placeholder="Max rent"
+                            className="px-3 py-2 border border-brand-sand rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" />
+                        <select value={occupancy} onChange={(e) => setOccupancy(e.target.value)}
+                            className="px-3 py-2 border border-brand-sand rounded-lg">
+                            <option value="Any">Any occupancy</option>
+                            <option value="Single">Single</option>
+                            <option value="Shared">Shared</option>
+                        </select>
+                        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
+                            className="px-3 py-2 border border-brand-sand rounded-lg">
+                            <option value="newest">Newest first</option>
+                            <option value="price-asc">Price: low to high</option>
+                            <option value="price-desc">Price: high to low</option>
+                        </select>
+                    </div>
+
+                    {searchLocation && (
+                        <div className="mt-3 flex items-center gap-3">
+                            <label className="text-sm text-brand-ink whitespace-nowrap">Within {radiusKm} km</label>
+                            <input type="range" min="5" max="50" step="5" value={radiusKm}
+                                onChange={(e) => setRadiusKm(Number(e.target.value))} className="flex-1" />
+                        </div>
+                    )}
                 </div>
 
                 {/* Show active search info */}
@@ -396,7 +445,7 @@ function AllListings({  user, userProfile }) {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                             <span className="text-brand-ink font-medium">
-                                Showing properties within {MAX_DISTANCE_KM}km of {searchTerm.split(',')[0]}
+                                Showing properties within {radiusKm}km of {searchTerm.split(',')[0]}
                             </span>
                         </div>
                         <span className="text-brand-green text-sm">
@@ -556,6 +605,7 @@ function AllListings({  user, userProfile }) {
                 )}
             </div>
         </main>
+        </>
     );
 }
 

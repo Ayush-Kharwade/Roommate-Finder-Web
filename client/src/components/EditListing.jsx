@@ -10,7 +10,7 @@ function EditListing() {
   const [property, setProperty] = useState({
     title: '',
     address: '',
-    rent: '',
+    rent: 0,
     vacancies: 1,
     imageUrl: ''
   });
@@ -73,7 +73,7 @@ function EditListing() {
         </div>
         <div className="mb-4">
           <label className="block text-gray-700">Monthly Rent (₹)</label>
-          <input type="text" name="rent" value={property.rent} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg" required />
+          <input type="number" name="rent" value={property.rent} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg" required />
         </div>
         <div className="mb-4">
           <label className="block text-gray-700">Vacancies</label>
