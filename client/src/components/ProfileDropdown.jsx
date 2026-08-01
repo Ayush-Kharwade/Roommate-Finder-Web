@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
-function ProfileDropdown({ user, userProfile, handleLogout, unreadCount }) {
+function ProfileDropdown({ user, userProfile, handleLogout, unreadCount, unreadNotifications }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -28,7 +28,7 @@ function ProfileDropdown({ user, userProfile, handleLogout, unreadCount }) {
       >
         <img src={avatarSrc} alt="Profile" className="w-full h-full object-cover" />
 
-        {unreadCount > 0 && (
+        {(unreadCount + unreadNotifications) > 0 && (
             <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-brand-marigold rounded-full border-2 border-white" />
         )}
       </button>
@@ -42,8 +42,13 @@ function ProfileDropdown({ user, userProfile, handleLogout, unreadCount }) {
           <Link to="/preferences" className="block px-6 py-2 text-md text-brand-green font-semibold hover:bg-gray-100" onClick={() => setIsOpen(false)}>
             My Preferences
           </Link>
-          <Link to="/notifications" className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
-            My Notifications
+          <Link to="/notifications" className="flex items-center justify-between px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
+              <span>My Notifications</span>
+              {unreadNotifications > 0 && (
+                  <span className="bg-brand-marigold text-brand-ink text-xs font-bold px-2 py-0.5 rounded-full">
+                      {unreadNotifications}
+                  </span>
+              )}
           </Link>
           <Link to={`/profile/${user.uid}`} className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
             My Profile

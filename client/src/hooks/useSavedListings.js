@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { doc, onSnapshot, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import toast from 'react-hot-toast';
+import { notifyListingSaved } from '../utils/notifications';
 
 /**
  * Subscribes to the current user's savedListings array.
@@ -51,6 +52,19 @@ export function useSavedListings() {
             await updateDoc(doc(db, 'users', user.uid), {
                 savedListings: isSaved ? arrayRemove(listingId) : arrayUnion(listingId),
             });
+            // Notify the owner — only on save, not un-save
+            if (!isSaved) {
+                const listingSnap = await getDoc(doc(db, 'properties', listingId));
+                if (listingSnap.exists()) {
+                    const listing = listingSnap.data();
+                    notifyListingSaved({
+                        listingId,
+                        listingTitle: listing.title,
+                        ownerId: listing.ownerId,
+                        actor: user,
+                    });
+                }
+            }
             toast.success(isSaved ? 'Removed from saved' : 'Saved');
         } catch (err) {
             console.error('Failed to toggle save:', err);

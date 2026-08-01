@@ -64,7 +64,9 @@ function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, 
                     {distanceInKm ? `${distanceInKm} km from your location` : 'Distance unavailable'}
                 </p>
                 <div className="flex items-center">
-                    <span className="text-brand-green font-bold">{match}% Match</span>
+                    {match !== null && match !== undefined && (
+                        <span className="text-brand-green font-bold">{match}% Match</span>
+                    )}
                     <div className="ml-4 flex space-x-3">
                         {/* 3. FIX THE BUTTONS */}
                         <button 

@@ -504,8 +504,10 @@ function AllListings({  user, userProfile }) {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {displayedProperties.map((property) => {
                                     
-                                    let matchScore = Math.floor(Math.random() * 20) + 30;
-                                    if (userProfile?.preferences && property.listingPreferences?.length > 0) {
+                                    // Only show a match score when we can actually compute one —
+                                    // no preferences on either side means no number, not a fake one.
+                                    let matchScore = null;
+                                    if (userProfile?.preferences?.length > 0 && property.listingPreferences?.length > 0) {
                                         const userPrefs = new Set(userProfile.preferences);
                                         const listingPrefs = property.listingPreferences;
                                         const commonPrefs = listingPrefs.filter(pref => userPrefs.has(pref));
@@ -568,8 +570,8 @@ function AllListings({  user, userProfile }) {
                                         distanceInKm = (distanceInMeters / 1000).toFixed(1);
                                     }
 
-                                    let matchScore = Math.floor(Math.random() * 20) + 30;
-                                    if (userProfile?.preferences && seeker.preferences?.length > 0) {
+                                    let matchScore = null;
+                                    if (userProfile?.preferences?.length > 0 && seeker.preferences?.length > 0) {
                                         const userPrefs = new Set(userProfile.preferences);
                                         const seekerPrefs = seeker.preferences;
                                         const commonPrefs = seekerPrefs.filter(pref => userPrefs.has(pref));

@@ -8,6 +8,7 @@ import {
 import toast from 'react-hot-toast';
 import ClipLoader from 'react-spinners/ClipLoader';
 import SEO from './SEO.jsx';
+import { notifyNewMessage } from '../utils/notifications';
 
 
 function ChatRoom() {
@@ -109,6 +110,13 @@ function ChatRoom() {
                 lastMessage: text,
                 lastMessageAt: serverTimestamp(),
                 lastMessageSender: currentUser.uid,
+            });
+            const recipientId = chat.participants.find(uid => uid !== currentUser.uid);
+            notifyNewMessage({
+                chatId,
+                recipientId,
+                actor: currentUser,
+                preview: text,
             });
         } catch (err) {
             console.error('Failed to send message:', err);

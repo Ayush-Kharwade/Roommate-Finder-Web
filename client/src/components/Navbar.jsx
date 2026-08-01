@@ -7,6 +7,7 @@ import ProfileDropdown from './ProfileDropdown.jsx';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { isUnread } from '../utils/chat';
+import { useUnreadNotifications } from '../hooks/useUnreadNotifications';
 
 const SearchIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -19,6 +20,7 @@ function Navbar({ user, userProfile }) {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const unreadNotifications = useUnreadNotifications(user);
 
   const handleLogout = () => {
     signOut(auth).then(() => {
@@ -88,7 +90,7 @@ function Navbar({ user, userProfile }) {
             <div className="border-l border-brand-sand h-8"></div>
 
             {user ? (
-              <ProfileDropdown user={user} userProfile={userProfile} handleLogout={handleLogout} unreadCount={unreadCount} />
+              <ProfileDropdown user={user} userProfile={userProfile} handleLogout={handleLogout} unreadCount={unreadCount} unreadNotifications={unreadNotifications} />
             ) : (
               <div className="flex items-center space-x-2">
                 <Link to="/signup" className="text-brand-ink font-medium hover:text-brand-green px-3 py-2">Join Community</Link>
@@ -131,22 +133,25 @@ function Navbar({ user, userProfile }) {
               </Link>
             )}
 
-            <Link to="/chats" className="flex items-center justify-between px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
-                <span>Messages</span>
-                {unreadCount > 0 && (
-                    <span className="bg-brand-marigold text-brand-ink text-xs font-bold px-2 py-0.5 rounded-full">
-                        {unreadCount}
-                    </span>
-                )}
-            </Link>
-
             {user ? (
               <>
-                <Link to="/my-listings" onClick={closeMenu} className="block px-3 py-3 text-brand-ink font-medium hover:bg-brand-cream rounded-lg">
-                    My Listings
+                <Link to="/chats" onClick={closeMenu} className="flex items-center justify-between px-3 py-3 text-brand-ink font-medium hover:bg-brand-cream rounded-lg">
+                  <span>Messages</span>
+                  {unreadCount > 0 && (
+                    <span className="bg-brand-marigold text-brand-ink text-xs font-bold px-2 py-0.5 rounded-full">{unreadCount}</span>
+                  )}
                 </Link>
-                <Link to="/saved" className="block px-6 py-2 text-md text-brand-ink hover:bg-brand-cream" onClick={() => setIsOpen(false)}>
-                    Saved
+                <Link to="/notifications" onClick={closeMenu} className="flex items-center justify-between px-3 py-3 text-brand-ink font-medium hover:bg-brand-cream rounded-lg">
+                  <span>Notifications</span>
+                  {unreadNotifications > 0 && (
+                    <span className="bg-brand-marigold text-brand-ink text-xs font-bold px-2 py-0.5 rounded-full">{unreadNotifications}</span>
+                  )}
+                </Link>
+                <Link to="/my-listings" onClick={closeMenu} className="block px-3 py-3 text-brand-ink font-medium hover:bg-brand-cream rounded-lg">
+                  My Listings
+                </Link>
+                <Link to="/saved" onClick={closeMenu} className="block px-3 py-3 text-brand-ink font-medium hover:bg-brand-cream rounded-lg">
+                  Saved
                 </Link>
                 <Link
                   to={`/profile/${user.uid}`}
