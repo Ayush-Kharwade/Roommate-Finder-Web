@@ -6,6 +6,8 @@ import toast from 'react-hot-toast';
 import { db } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import ClipLoader from "react-spinners/ClipLoader";
+import { getOrCreateChat } from '../utils/chat';
+import ReportButton from './ReportButton.jsx';
 
 // This preference data is still needed
 const preferenceOptions = [
@@ -145,6 +147,14 @@ function SeekerDetails({ user }) {
                                 >
                                     Call
                                 </button>
+                            </div>
+                            <div className="mt-4 pt-4 border-t border-brand-sand flex justify-center">
+                                <ReportButton
+                                    targetType="seeker"
+                                    targetId={seeker.id}
+                                    targetTitle={seeker.name}
+                                    targetOwnerId={seeker.id}
+                                />
                             </div>
                         </div>
                     </div>

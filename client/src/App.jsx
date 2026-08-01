@@ -26,6 +26,7 @@ import MyListings from './components/MyListings.jsx';
 import ChatRoom from './components/ChatRoom.jsx';
 import ChatList from './components/ChatList.jsx';
 import SavedListings from './components/SavedListings.jsx';
+import AdminReports from './components/AdminReports.jsx';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -85,6 +86,7 @@ function App() {
         <Route path="/chat/:chatId" element={<ProtectedRoute user={user}><ChatRoom /></ProtectedRoute>} />
         <Route path="/chats" element={<ProtectedRoute user={user}><ChatList /></ProtectedRoute>} />
         <Route path="/saved" element={<ProtectedRoute user={user}><SavedListings /></ProtectedRoute>} />
+        <Route path="/admin/reports" element={<ProtectedRoute user={user}><AdminReports /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />

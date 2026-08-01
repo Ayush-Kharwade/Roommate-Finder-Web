@@ -29,13 +29,31 @@ function Login() {
       toast.success('Successfully logged in!');
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err.message);
-      toast.error('Failed to log in.');
+        setError(mapAuthError(err.code));
     } finally {
-          setIsSubmitting(false);
+        setIsSubmitting(false);
     }
     
   };
+
+  const mapAuthError = (code) => {
+    switch (code) {
+        case 'auth/invalid-credential':
+        case 'auth/wrong-password':
+        case 'auth/user-not-found':
+            return 'Incorrect email or password. Please try again.';
+        case 'auth/invalid-email':
+            return 'Please enter a valid email address.';
+        case 'auth/too-many-requests':
+            return 'Too many attempts. Please wait a moment and try again.';
+        case 'auth/user-disabled':
+            return 'This account has been disabled.';
+        case 'auth/network-request-failed':
+            return 'Network error. Check your connection and try again.';
+        default:
+            return 'Could not sign you in. Please try again.';
+    }
+};
 
   return (
     <div className="container mx-auto p-8 flex justify-center">

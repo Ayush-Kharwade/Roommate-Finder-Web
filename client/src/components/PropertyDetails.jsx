@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import ClipLoader from 'react-spinners/ClipLoader';
 import SEO from './SEO.jsx';
 import { getOrCreateChat } from '../utils/chat';
+import ReportButton from './ReportButton.jsx';
 
 const preferenceOptions = [
     { name: 'Night Owl', emoji: '🦉' }, { name: 'Early Bird', emoji: '🐦' },
@@ -242,6 +243,15 @@ function PropertyDetails({ properties, user }) {
                                 {showContact && ownerData && !ownerData.contactNumber && (
                                     <p className="mt-4 text-sm text-gray-500">This user hasn't added a phone number.</p>
                                 )}
+
+                                <div className="mt-4 pt-4 border-t border-brand-sand flex justify-center">
+                                    <ReportButton
+                                        targetType="property"
+                                        targetId={property.id}
+                                        targetTitle={property.title}
+                                        targetOwnerId={property.ownerId}
+                                    />
+                                </div>
                             </div>
                         )}
 
