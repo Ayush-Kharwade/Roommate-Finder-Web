@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import ClipLoader from 'react-spinners/ClipLoader';
+import { primaryName, secondaryName, formatAddress } from '../utils/formatAddress';
 
 // Define the options for the form's tag inputs
 const highlightOptions = [
@@ -29,37 +30,79 @@ function AddSeekerProfile() {
     });
     const [suggestions, setSuggestions] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedAddress, setSelectedAddress] = useState('');
 
     // Effect for debounced autocomplete API call for the location
+    // Effect for debounced autocomplete API call for the location
     useEffect(() => {
+
+        // Don't search again after the user selected a suggestion
+        if (formData.location === selectedAddress) {
+            setSuggestions([]);
+            return;
+        }
+
+        // Don't search until at least 3 characters are entered
         if (formData.location.length < 3) {
             setSuggestions([]);
             return;
         }
+
         const handler = setTimeout(async () => {
             const OPENCAGE_API_KEY = import.meta.env.VITE_OPENCAGE_API_KEY;
-            const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(formData.location)}&key=${OPENCAGE_API_KEY}&countrycode=in&limit=5`;
+
+            const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
+                formData.location
+            )}&key=${OPENCAGE_API_KEY}&countrycode=in&limit=5`;
+
             try {
-                const response = await axios.get(url);
-                if (response.data.results) setSuggestions(response.data.results);
+                const res = await axios.get(url);
+                const results = res.data.results || [];
+
+                // Remove duplicate suggestions
+                const seen = new Set();
+
+                const unique = results.filter(r => {
+                    const label = formatAddress(r);
+
+                    if (seen.has(label)) return false;
+
+                    seen.add(label);
+                    return true;
+                });
+
+                setSuggestions(unique);
+
             } catch (error) {
                 console.error("Autocomplete error:", error);
+                setSuggestions([]);
             }
+
         }, 500);
+
         return () => clearTimeout(handler);
-    }, [formData.location]);
+
+    }, [formData.location, selectedAddress]);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        // Typing a new address invalidates any previously picked coordinates
+        if (name === 'address') {
+            setFormData(prev => ({ ...prev, address: value, lat: null, lng: null }));
+            return;
+        }
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSuggestionClick = (suggestion) => {
-        setFormData({
-            ...formData,
-            location: suggestion.formatted,
+        const label = formatAddress(suggestion);
+        setSelectedAddress(label);          // marks this text as "already resolved"
+        setFormData(prev => ({
+            ...prev,
+            address: label,
             lat: suggestion.geometry.lat,
             lng: suggestion.geometry.lng,
-        });
+        }));
         setSuggestions([]);
     };
 
@@ -80,6 +123,10 @@ function AddSeekerProfile() {
         }
         if (!formData.location || !formData.budget) {
             return toast.error("Please fill in all required fields.");
+        }
+        if (!property.lat || !property.lng) {
+            toast.error('Please pick an address from the suggestions.');
+            return;
         }
         
         setIsLoading(true);
@@ -121,11 +168,24 @@ function AddSeekerProfile() {
                     {/* Location */}
                     <div className="relative">
                         <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">Add Your Location*</label>
-                        <input type="text" name="location" id="location" value={formData.location} onChange={handleChange} className="w-full px-4 py-2 border rounded-md" placeholder="Start typing your preferred location..." required autoComplete="off" />
+                        <input type="text" name="location" id="location" value={formData.location} onChange={handleChange} className="w-full px-4 py-2 border rounded-md" placeholder="Start typing your preferred location..." required autoComplete="off"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();      // don't submit the form from this field
+                                        setSuggestions([]);
+                                    }
+                                }}
+                                onBlur={() => setTimeout(() => setSuggestions([]), 200)} />
                         {suggestions.length > 0 && (
                             <ul className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
                                 {suggestions.map((s, i) => (
-                                    <li key={i} onClick={() => handleSuggestionClick(s)} className="px-4 py-2 cursor-pointer hover:bg-gray-100">{s.formatted}</li>
+                                    <li key={i} onClick={() => handleSuggestionClick(s)} className="px-4 py-2 cursor-pointer hover:bg-gray-100">
+                                        <li key={i} onClick={() => handleSuggestionClick(s)}
+                                            className="px-4 py-2 cursor-pointer hover:bg-brand-cream">
+                                            <p className="text-brand-ink font-medium truncate">{primaryName(s) || s.formatted}</p>
+                                            {secondaryName(s) && <p className="text-xs text-gray-500 truncate">{secondaryName(s)}</p>}
+                                        </li>
+                                    </li>
                                 ))}
                             </ul>
                         )}

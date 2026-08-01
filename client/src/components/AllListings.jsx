@@ -9,6 +9,7 @@ import { collection, getDocs, query, where, orderBy, limit, startAfter } from 'f
 import { db } from '../firebase';
 import ClipLoader from 'react-spinners/ClipLoader';
 import SEO from './SEO.jsx';
+import { primaryName, secondaryName, formatAddress } from '../utils/formatAddress';
 
 const PAGE_SIZE = 24;
 
@@ -37,6 +38,7 @@ function AllListings({  user, userProfile }) {
     const [occupancy, setOccupancy] = useState('Any');
     const [radiusKm, setRadiusKm] = useState(10);
     const [sortBy, setSortBy] = useState('newest');
+    const [selectedAddress, setSelectedAddress] = useState('');
 
     useEffect(() => {
         const t = setTimeout(() => setAppliedBudget({ min: minRent, max: maxRent }), 600);
@@ -87,6 +89,10 @@ function AllListings({  user, userProfile }) {
 
     // Fetch autocomplete suggestions (only for dropdown, not for filtering)
     useEffect(() => {
+        if (formData.address === selectedAddress) {
+            setSuggestions([]);
+            return;
+        }
         // Don't fetch if search term is too short
         if (searchTerm.length < 3) {
             setSuggestions([]);
@@ -102,14 +108,16 @@ function AllListings({  user, userProfile }) {
             const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(searchTerm)}&key=${OPENCAGE_API_KEY}&countrycode=in&limit=5`;
 
             try {
-                const response = await axios.get(url);
-                if (response.data.results) {
-                    setSuggestions(response.data.results.map(res => ({
-                        formatted: res.formatted,
-                        geometry: res.geometry,
-                    })));
-                    setAutocompleteError(false);
-                }
+                const res = await axios.get(url);
+                const results = res.data.results || [];
+                const seen = new Set();
+                const unique = results.filter(r => {
+                    const label = formatAddress(r);
+                    if (seen.has(label)) return false;
+                    seen.add(label);
+                    return true;
+                });
+                setSuggestions(unique);
             } catch (error) {
                 console.error("Autocomplete error:", error);
                 setAutocompleteError(true);
@@ -160,6 +168,9 @@ function AllListings({  user, userProfile }) {
     };
 
     const handleSearchSubmit = async () => {
+
+        const locationName = formatAddress(response.data.results[0]);
+
         if (!searchTerm.trim()) {
             toast.error("Please enter a location to search");
             return;
@@ -168,10 +179,9 @@ function AllListings({  user, userProfile }) {
         // Hide suggestions dropdown
         setShowSuggestions(false);
 
-        // If user pressed search button, use the current search term to geocode
         const OPENCAGE_API_KEY = import.meta.env.VITE_OPENCAGE_API_KEY;
         const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(searchTerm)}&key=${OPENCAGE_API_KEY}&countrycode=in&limit=1`;
-    
+
         try {
             const response = await axios.get(url);
             if (response.data.results.length > 0) {
@@ -179,22 +189,10 @@ function AllListings({  user, userProfile }) {
                 const locationName = response.data.results[0].formatted;
                 setSearchTerm(locationName);
                 setSearchLocation({ latitude: lat, longitude: lng });
-                
-                // Check if any properties exist within range
-                const propertiesInRange = properties.filter(p => {
-                    if (!p.lat || !p.lng) return false;
-                    const distance = getDistance(
-                        { latitude: lat, longitude: lng },
-                        { latitude: p.lat, longitude: p.lng }
-                    );
-                    return distance <= radiusKm * 1000;
-                });
-
-                if (propertiesInRange.length === 0) {
-                    toast.error(`No properties found within ${radiusKm}km of ${locationName.split(',')[0]}`);
-                } else {
-                    toast.success(`Found ${propertiesInRange.length} properties near ${locationName.split(',')[0]}`);
-                }
+                // No result-count toast here: the banner below already shows
+                // "Showing properties within Xkm of Y — N found", and it reads
+                // from the memo so it's always accurate. A toast fired here runs
+                // before properties have loaded and would report 0.
             } else {
                 toast.error("Could not find that location. Please try another search.");
                 setSearchLocation(null);
@@ -314,6 +312,16 @@ function AllListings({  user, userProfile }) {
         };
     }, []);
 
+    // A search arriving via the URL (e.g. from the homepage) needs geocoding too,
+    // otherwise it silently degrades to plain text matching.
+    useEffect(() => {
+        const urlSearch = searchParams.get('search');
+        if (urlSearch && !searchLocation) {
+            handleSearchSubmit();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
 
     return (
         <>
@@ -376,7 +384,10 @@ function AllListings({  user, userProfile }) {
                                                 onClick={() => handleSuggestionClick(suggestion)} 
                                                 className="px-4 py-2 cursor-pointer hover:bg-gray-100 border-b last:border-b-0"
                                             >
-                                                {suggestion.formatted}
+                                                <p className="text-brand-ink font-medium truncate">{primaryName(suggestion) || suggestion.formatted}</p>
+                                                {secondaryName(suggestion) && (
+                                                    <p className="text-xs text-gray-500 truncate">{secondaryName(suggestion)}</p>
+                                                )}
                                             </li>
                                         ))}
                                     </ul>

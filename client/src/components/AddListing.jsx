@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import ClipLoader from 'react-spinners/ClipLoader';
 import { uploadMultipleToCloudinary } from '../utils/cloudinary';
+import { primaryName, secondaryName, formatAddress } from '../utils/formatAddress';
 
 // Define the options for the form
 const highlightOptions = [
@@ -44,8 +45,13 @@ function AddListing() {
     const [imageFiles, setImageFiles] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const currentUser = auth.currentUser;
+    const [selectedAddress, setSelectedAddress] = useState('');
 
     useEffect(() => {
+        if (formData.address === selectedAddress) {
+            setSuggestions([]);
+            return;
+        }
         if (formData.address.length < 3) {
             setSuggestions([]);
             return;
@@ -57,10 +63,16 @@ function AddListing() {
             const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(formData.address)}&key=${OPENCAGE_API_KEY}&countrycode=in&limit=5`;
 
             try {
-                const response = await axios.get(url);
-                if (response.data.results) {
-                    setSuggestions(response.data.results);
-                }
+                const res = await axios.get(url);
+                const results = res.data.results || [];
+                const seen = new Set();
+                const unique = results.filter(r => {
+                    const label = formatAddress(r);
+                    if (seen.has(label)) return false;
+                    seen.add(label);
+                    return true;
+                });
+                setSuggestions(unique);
             } catch (error) {
                 console.error("Autocomplete error:", error);
             } finally {
@@ -69,20 +81,28 @@ function AddListing() {
         }, 500); // 500ms debounce
 
         return () => clearTimeout(handler);
-    }, [formData.address]); // Re-run when the address input changes
+    }, [formData.address, selectedAddress]); // Re-run when the address input changes
 
     const handleSuggestionClick = (suggestion) => {
-        setFormData({
-            ...formData,
-            address: suggestion.formatted,
+        const label = formatAddress(suggestion);
+        setSelectedAddress(label);          // marks this text as "already resolved"
+        setFormData(prev => ({
+            ...prev,
+            address: label,
             lat: suggestion.geometry.lat,
             lng: suggestion.geometry.lng,
-        });
-        setSuggestions([]); // Hide suggestions after selection
+        }));
+        setSuggestions([]);
     };
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        // Typing a new address invalidates any previously picked coordinates
+        if (name === 'address') {
+            setFormData(prev => ({ ...prev, address: value, lat: null, lng: null }));
+            return;
+        }
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleTagToggle = (type, value) => {
@@ -106,40 +126,39 @@ function AddListing() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // ---- Validate BEFORE setting the loading flag ----
         if (!formData.address || !formData.rent || !formData.title) {
             return toast.error("Please fill in all required fields.");
         }
-        
+
         setIsLoading(true);
-
-        // Geocode the address to get coordinates
-        const OPENCAGE_API_KEY = import.meta.env.VITE_OPENCAGE_API_KEY;
-        const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(formData.address)}&key=${OPENCAGE_API_KEY}`;
-
         try {
-            // const response = await axios.get(url);
-            // let coordinates = { lat: null, lng: null };
             let submissionData = { ...formData };
 
-            // if (response.data.results.length > 0) {
-            //     coordinates = response.data.results[0].geometry;
-            // } else {
-            //     throw new Error("Could not find coordinates for this address.");
-            // }
-
+            // Geocode only if a suggestion wasn't picked (which would have set lat/lng)
             if (!submissionData.lat || !submissionData.lng) {
                 toast("Geocoding your address...");
                 const OPENCAGE_API_KEY = import.meta.env.VITE_OPENCAGE_API_KEY;
-                const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(submissionData.address)}&key=${OPENCAGE_API_KEY}&limit=1`;
+                const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(submissionData.address)}&key=${OPENCAGE_API_KEY}&countrycode=in&limit=1`;
                 const response = await axios.get(url);
-                if (response.data.results.length > 0) {
-                    submissionData.lat = response.data.results[0].geometry.lat;
-                    submissionData.lng = response.data.results[0].geometry.lng;
+
+                if (response.data.results?.length > 0) {
+                    const best = response.data.results[0];
+                    if (best.confidence < 7) {
+                        toast.error('That address is too vague. Please pick one from the suggestions.');
+                        setIsLoading(false);
+                        return;
+                    }
+                    submissionData.lat = best.geometry.lat;
+                    submissionData.lng = best.geometry.lng;
                 } else {
-                    throw new Error("Could not find coordinates for this address.");
+                    toast.error('Could not locate that address. Please pick one from the suggestions.');
+                    setIsLoading(false);
+                    return;
                 }
             }
-            
+
             // Upload images to Cloudinary (if any were selected)
             let imageUrls = [];
             if (imageFiles.length > 0) {
@@ -159,7 +178,7 @@ function AddListing() {
                 ownerName: currentUser.displayName || 'Anonymous',
                 ownerPhotoUrl: currentUser.photoURL || null,
                 imageUrls,
-                imageUrl: imageUrls[0] || null,  // first image as the card thumbnail
+                imageUrl: imageUrls[0] || null,
                 rent: Number(submissionData.rent) || 0,
                 createdAt: serverTimestamp(),
             };
@@ -209,6 +228,13 @@ function AddListing() {
                             placeholder="Start typing your address..."
                             required
                             autoComplete="off"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();      // don't submit the form from this field
+                                    setSuggestions([]);
+                                }
+                            }}
+                            onBlur={() => setTimeout(() => setSuggestions([]), 200)}
                         />
                         {suggestions.length > 0 && (
                             <ul className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
@@ -221,7 +247,12 @@ function AddListing() {
                                             onClick={() => handleSuggestionClick(suggestion)}
                                             className="px-4 py-2 cursor-pointer hover:bg-gray-100 border-b last:border-b-0"
                                         >
-                                            {suggestion.formatted}
+                                            <div className="min-w-0">
+                                                <p className="text-brand-ink font-medium truncate">{primaryName(suggestion) || suggestion.formatted}</p>
+                                                {secondaryName(suggestion) && (
+                                                    <p className="text-xs text-gray-500 truncate">{secondaryName(suggestion)}</p>
+                                                )}
+                                            </div>
                                         </li>
                                     ))
                                 )}
