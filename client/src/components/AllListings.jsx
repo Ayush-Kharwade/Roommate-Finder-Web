@@ -89,7 +89,7 @@ function AllListings({  user, userProfile }) {
 
     // Fetch autocomplete suggestions (only for dropdown, not for filtering)
     useEffect(() => {
-        if (formData.address === selectedAddress) {
+        if (searchTerm === selectedAddress) { 
             setSuggestions([]);
             return;
         }
@@ -129,7 +129,7 @@ function AllListings({  user, userProfile }) {
         return () => {
             clearTimeout(handler);
         };
-    }, [searchTerm, showSuggestions]);
+    }, [searchTerm, selectedAddress, showSuggestions]);
 
     const handleSearchChange = (e) => {
         const value = e.target.value;
@@ -145,31 +145,16 @@ function AllListings({  user, userProfile }) {
 
     const handleSuggestionClick = (suggestion) => {
         const { lat, lng } = suggestion.geometry;
+        const label = formatAddress(suggestion);
+        setSelectedAddress(label);
         setSearchTerm(suggestion.formatted);
         setSearchLocation({ latitude: lat, longitude: lng });
         setSuggestions([]);
         setShowSuggestions(false); // Hide suggestions after selection
         
-        // Check if any properties exist within range
-        const propertiesInRange = properties.filter(p => {
-            if (!p.lat || !p.lng) return false;
-            const distance = getDistance(
-                { latitude: lat, longitude: lng },
-                { latitude: p.lat, longitude: p.lng }
-            );
-            return distance <= radiusKm * 1000;
-        });
-
-        if (propertiesInRange.length === 0) {
-            toast.error(`No properties found within ${radiusKm}km of ${suggestion.formatted.split(',')[0]}`);
-        } else {
-            toast.success(`Found ${propertiesInRange.length} properties near ${suggestion.formatted.split(',')[0]}`);
-        }
     };
 
     const handleSearchSubmit = async () => {
-
-        const locationName = formatAddress(response.data.results[0]);
 
         if (!searchTerm.trim()) {
             toast.error("Please enter a location to search");
@@ -186,7 +171,7 @@ function AllListings({  user, userProfile }) {
             const response = await axios.get(url);
             if (response.data.results.length > 0) {
                 const { lat, lng } = response.data.results[0].geometry;
-                const locationName = response.data.results[0].formatted;
+                const locationName = formatAddress(response.data.results[0]);
                 setSearchTerm(locationName);
                 setSearchLocation({ latitude: lat, longitude: lng });
                 // No result-count toast here: the banner below already shows
