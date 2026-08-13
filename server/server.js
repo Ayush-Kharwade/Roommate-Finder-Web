@@ -45,7 +45,9 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-app.use((err, req, res, next) => {
+// Express identifies error middleware by its 4-argument signature, so `_next`
+// has to stay in the list even though it is never called.
+app.use((err, req, res, _next) => {
   console.error(err.message);
   const status = err.status || 500;
   res.status(status).json({

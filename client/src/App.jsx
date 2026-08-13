@@ -69,7 +69,7 @@ function App() {
       <Toaster position="top-center" />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/listings" element={<AllListings  user={user} userProfile={userProfile} />} />
+        <Route path="/listings" element={<AllListings userProfile={userProfile} />} />
         <Route path="/property/:id" element={<PropertyDetails  user={user} />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />

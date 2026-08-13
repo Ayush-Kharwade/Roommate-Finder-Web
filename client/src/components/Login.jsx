@@ -1,13 +1,10 @@
 // src/components/Login.jsx
 import React, { useState } from 'react';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import toast from 'react-hot-toast';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import SEO from './SEO.jsx';
-
-//SEO
-<SEO title="Login" />
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -19,6 +16,34 @@ function Login() {
   const from = location.state?.from?.pathname || '/';
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
+  const handlePasswordReset = async () => {
+    if (!email) {
+      setError('Enter your email address first, then tap "Forgot password?".');
+      return;
+    }
+
+    setError('');
+    setIsResetting(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+    } catch (err) {
+      // Anything other than a malformed address is swallowed on purpose: a
+      // distinct "no such user" response would let anyone test whether an
+      // email has an account here.
+      if (err.code === 'auth/invalid-email') {
+        setError('Please enter a valid email address.');
+        setIsResetting(false);
+        return;
+      }
+      console.error('Password reset failed:', err);
+    } finally {
+      setIsResetting(false);
+    }
+
+    toast.success('If that email has an account, a reset link is on its way.');
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -57,6 +82,7 @@ function Login() {
 
   return (
     <div className="container mx-auto p-8 flex justify-center">
+      <SEO title="Login" />
       <form onSubmit={handleLogin} className="w-full max-w-sm bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
@@ -71,7 +97,17 @@ function Login() {
           />
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700">Password</label>
+          <div className="flex items-baseline justify-between">
+            <label className="block text-gray-700">Password</label>
+            <button
+              type="button"
+              onClick={handlePasswordReset}
+              disabled={isResetting}
+              className="text-sm text-brand-green font-semibold hover:underline disabled:opacity-50"
+            >
+              {isResetting ? 'Sending…' : 'Forgot password?'}
+            </button>
+          </div>
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
@@ -97,6 +133,13 @@ function Login() {
         >
             {isSubmitting ? 'Signing in...' : 'Login'}
         </button>
+
+        <p className="text-sm text-center text-gray-500 mt-4">
+          New here?{' '}
+          <Link to="/signup" className="text-brand-green font-semibold hover:underline">
+            Create an account
+          </Link>
+        </p>
       </form>
     </div>
   );

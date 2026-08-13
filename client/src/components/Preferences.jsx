@@ -1,37 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
-
-// We can keep the same options
-const preferenceOptions = [
-  { name: 'Night Owl', emoji: '🦉' },
-  { name: 'Early Bird', emoji: '🐦' },
-  { name: 'Studious', emoji: '📚' },
-  { name: 'Fitness Freak', emoji: '🏋️' },
-  { name: 'Sporty', emoji: '⚽' },
-  { name: 'Wanderer', emoji: '🚗' },
-  { name: 'Party Lover', emoji: '🎉' },
-  { name: 'Pet Lover', emoji: '🐾' },
-  { name: 'Vegan', emoji: '🌱' },
-  { name: 'Non-Alcoholic', emoji: '💧' },
-  { name: 'Music Lover', emoji: '🎵' },
-  { name: 'Non Smoker', emoji: '🚭' },
-];
+import { preferenceOptions } from '../constants/preferences';
+import SEO from './SEO.jsx';
 
 function Preferences() {
   const [selectedPreferences, setSelectedPreferences] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const currentUser = auth.currentUser;
 
-  // Fetching logic remains the same
   useEffect(() => {
     const fetchPreferences = async () => {
       if (currentUser) {
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists() && userDoc.data().preferences) {
-          setSelectedPreferences(userDoc.data().preferences);
+        try {
+          const userDocRef = doc(db, 'users', currentUser.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists() && userDoc.data().preferences) {
+            setSelectedPreferences(userDoc.data().preferences);
+          }
+        } catch (err) {
+          // An unhandled rejection here used to leave the page stuck on "Loading..."
+          console.error('Failed to load preferences:', err);
+          toast.error('Could not load your preferences.');
         }
       }
       setLoading(false);
@@ -39,7 +31,6 @@ function Preferences() {
     fetchPreferences();
   }, [currentUser]);
 
-  // Toggle logic remains the same
   const handleSelect = (preferenceName) => {
     setSelectedPreferences(prev => 
       prev.includes(preferenceName)
@@ -48,17 +39,19 @@ function Preferences() {
     );
   };
 
-  // Update logic remains the same
   const handleUpdate = async () => {
     if (!currentUser) return toast.error("You must be logged in.");
     const userDocRef = doc(db, 'users', currentUser.uid);
+    setSaving(true);
     try {
-      await updateDoc(userDocRef, { preferences: selectedPreferences });
+      // merge, not updateDoc — the users document may not exist yet.
+      await setDoc(userDocRef, { preferences: selectedPreferences }, { merge: true });
       toast.success("Preferences updated successfully!");
     } catch (error) {
       toast.error("Failed to update preferences.");
       console.error("Error updating preferences: ", error);
-      
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -68,6 +61,7 @@ function Preferences() {
 
   return (
     <div className="container mx-auto max-w-2xl py-12 px-4">
+      <SEO title="Your Preferences" />
       <h1 className="text-3xl font-bold text-center text-gray-800">Your Preferences</h1>
       <p className="text-center text-gray-500 mt-2 mb-8">Select the tags that best describe your lifestyle.</p>
       
@@ -94,9 +88,10 @@ function Preferences() {
       <div className="text-center mt-10">
         <button
           onClick={handleUpdate}
-          className="bg-brand-green text-white font-bold py-3 px-8 rounded-full hover:bg-brand-green-dark transition-transform transform hover:scale-105"
+          disabled={saving}
+          className="bg-brand-green text-white font-bold py-3 px-8 rounded-full hover:bg-brand-green-dark transition-transform transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
         >
-          Update Preferences
+          {saving ? 'Saving…' : 'Update Preferences'}
         </button>
       </div>
     </div>

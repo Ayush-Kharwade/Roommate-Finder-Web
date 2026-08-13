@@ -3,14 +3,15 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { auth } from '../firebase';
+import { getOrCreateChat } from '../utils/chat';
 
 function SeekerCard({ seeker, distance, match }) {
-  const { id, name, city, budget, profilePicUrl, userId, gender } = seeker;
+  const { name, city, budget, profilePicUrl, userId, gender } = seeker;
   const navigate = useNavigate();
   const currentUser = auth.currentUser;
 
   // Handler for chat button click
-  const handleChat = (e) => {
+  const handleChat = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (!currentUser) {
@@ -19,14 +20,27 @@ function SeekerCard({ seeker, distance, match }) {
     if (currentUser.uid === userId) {
         return toast.error("You cannot start a chat with yourself.");
     }
-    const chatId = currentUser.uid > userId ? `${currentUser.uid}_${userId}` : `${userId}_${currentUser.uid}`;
-    navigate(`/chat/${chatId}`);
+
+    // The chat document has to exist before we navigate — routing straight to
+    // a derived ID lands on "Conversation not available".
+    try {
+        const chatId = await getOrCreateChat({
+            currentUser,
+            otherUser: { uid: userId, name, photoUrl: profilePicUrl },
+            context: {},
+        });
+        navigate(`/chat/${chatId}`);
+    } catch (err) {
+        console.error('Failed to start chat:', err);
+        toast.error("Could not start the chat. Please try again.");
+    }
   };
 
   const handleContact = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    toast.success("Contact feature coming soon!");
+    // Seekers never publish a phone number — chat is the only channel.
+    toast("Contact details are private. Use Chat to reach them.");
   };
 
   return (
@@ -38,7 +52,7 @@ function SeekerCard({ seeker, distance, match }) {
         <div className="flex-shrink-0">
           <img 
             className="h-20 w-20 rounded-full object-cover" 
-            src={profilePicUrl || `https://ui-avatars.com/api/?name=${name?.replace(/\s/g, '+')}&background=random`} 
+            src={profilePicUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=random`}
             alt={name} 
           />
         </div>

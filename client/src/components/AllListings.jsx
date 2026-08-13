@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import PropertyCard from './PropertyCard.jsx';
 import { getDistance } from 'geolib';
@@ -13,23 +13,19 @@ import { primaryName, secondaryName, formatAddress } from '../utils/formatAddres
 
 const PAGE_SIZE = 24;
 
-function AllListings({  user, userProfile }) {
+function AllListings({ userProfile }) {
     const [searchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
     const [activeTab, setActiveTab] = useState('rooms');
     const [genderFilter, setGenderFilter] = useState('Any Gender');
     const [suggestions, setSuggestions] = useState([]);
-    const [userLocation, setUserLocation] = useState(null);
-    const [browserLocation, setBrowserLocation] = useState(null);
     const [searchLocation, setSearchLocation] = useState(null);
     const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [autocompleteError, setAutocompleteError] = useState(false);
-    const [sortedProperties, setSortedProperties] = useState(null);
     const [properties, setProperties] = useState([]);
     const [seekers, setSeekers] = useState([]);
     const [dataLoading, setDataLoading] = useState(true);
-    const [lastDoc, setLastDoc] = useState(null);
     const [hasMore, setHasMore] = useState(true);
     const [fetchError, setFetchError] = useState(false);
     const [minRent, setMinRent] = useState('');
@@ -41,7 +37,15 @@ function AllListings({  user, userProfile }) {
     const [selectedAddress, setSelectedAddress] = useState('');
 
     useEffect(() => {
-        const t = setTimeout(() => setAppliedBudget({ min: minRent, max: maxRent }), 600);
+        const t = setTimeout(() => {
+            // Keep the previous object when nothing actually changed — a fresh
+            // object identity would re-trigger the fetch effect for no reason.
+            setAppliedBudget(prev =>
+                prev.min === minRent && prev.max === maxRent
+                    ? prev
+                    : { min: minRent, max: maxRent }
+            );
+        }, 600);
         return () => clearTimeout(t);
     }, [minRent, maxRent]);
 
@@ -202,7 +206,7 @@ function AllListings({  user, userProfile }) {
             new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), ms))
         ]);
 
-    const buildQuery = (afterDoc = null) => {
+    const buildQuery = useCallback((afterDoc = null) => {
 
         const col = collection(db, 'properties');
         const constraints = [];
@@ -229,19 +233,24 @@ function AllListings({  user, userProfile }) {
         if (afterDoc) constraints.push(startAfter(afterDoc));
         constraints.push(limit(PAGE_SIZE));
         return query(col, ...constraints);
-    };
+    }, [occupancy, appliedBudget, sortBy]);
 
-    const fetchProperties = async (isLoadMore = false) => {
+    // The pagination cursor lives in a ref as well as state: state drives the
+    // "Load More" button, but keeping it out of fetchProperties' dependencies
+    // stops every page load from re-triggering the first-page effect.
+    const lastDocRef = useRef(null);
+
+    const fetchProperties = useCallback(async (isLoadMore = false) => {
         setFetchError(false);
         setDataLoading(true);
 
         try {
-            const q = buildQuery(isLoadMore ? lastDoc : null);
+            const q = buildQuery(isLoadMore ? lastDocRef.current : null);
             const snap = await withTimeout(getDocs(q));
             const batch = snap.docs.map(d => ({ ...d.data(), id: d.id }));
 
             setProperties(prev => isLoadMore ? [...prev, ...batch] : batch);
-            setLastDoc(snap.docs[snap.docs.length - 1] || null);
+            lastDocRef.current = snap.docs[snap.docs.length - 1] || null;
             setHasMore(snap.docs.length === PAGE_SIZE);
         } catch (err) {
             console.error('Failed to load properties:', err);
@@ -250,7 +259,7 @@ function AllListings({  user, userProfile }) {
         } finally {
             setDataLoading(false);
         }
-    };
+    }, [buildQuery]);
 
     useEffect(() => {
         // seekers: same pattern, or fetch all if the set is small
@@ -265,20 +274,62 @@ function AllListings({  user, userProfile }) {
     }, []);
 
     useEffect(() => {
-        setLastDoc(null);
+        lastDocRef.current = null;
         fetchProperties(false);
-    }, [appliedBudget, sortBy, occupancy]);
+    }, [fetchProperties]);
 
-    const filteredSeekers = seekers
-        .filter((seeker) => {
-            return seeker.city && seeker.city.toLowerCase().includes(searchTerm.toLowerCase())
-        })
-        .filter((seeker) => {
-            if (genderFilter === 'Any Gender') {
-                return true;
-            }
-            return seeker.gender === genderFilter;
-        });
+    // Seekers follow the same rules as rooms: once a location is resolved we
+    // filter by radius, not by text. Matching seeker.city against searchTerm
+    // stopped working the moment geocoding rewrote searchTerm into a full
+    // formatted address ("Koregaon Park, Pune, Maharashtra"), which no city
+    // field ever contains — the tab just went empty after every search.
+    const filteredSeekers = useMemo(() => {
+        let list = seekers;
+
+        if (genderFilter !== 'Any Gender') {
+            list = list.filter(s => s.gender === genderFilter);
+        }
+
+        const cityMatches = (seeker) => {
+            if (!seeker.city || !searchTerm) return false;
+            const city = seeker.city.toLowerCase();
+            // searchTerm is a formatted address by this point, so compare each
+            // of its parts ("Koregaon Park", "Pune", "Maharashtra") to the city.
+            return searchTerm
+                .toLowerCase()
+                .split(',')
+                .map(part => part.trim())
+                .filter(Boolean)
+                .some(part => city.includes(part) || part.includes(city));
+        };
+
+        if (searchLocation) {
+            const withDistance = list.map(seeker => {
+                if (!seeker.lat || !seeker.lng) return { ...seeker, distance: null };
+                return {
+                    ...seeker,
+                    distance: getDistance(
+                        searchLocation,
+                        { latitude: seeker.lat, longitude: seeker.lng }
+                    ),
+                };
+            });
+
+            return withDistance
+                // Profiles created before coordinates were captured have no
+                // lat/lng. Dropping them outright would make older members
+                // invisible, so they fall back to a city-name match.
+                .filter(s => s.distance == null ? cityMatches(s) : s.distance <= radiusKm * 1000)
+                .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+        }
+
+        if (searchTerm) {
+            const needle = searchTerm.toLowerCase();
+            return list.filter(s => s.city && s.city.toLowerCase().includes(needle));
+        }
+
+        return list;
+    }, [seekers, genderFilter, searchLocation, searchTerm, radiusKm]);
 
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -295,7 +346,9 @@ function AllListings({  user, userProfile }) {
             window.removeEventListener('online', goOnline);
             window.removeEventListener('offline', goOffline);
         };
-    }, []);
+        // Re-binds when the filters change so a reconnect refetches the
+        // listings the user is currently looking at, not a stale query.
+    }, [fetchProperties]);
 
     // A search arriving via the URL (e.g. from the homepage) needs geocoding too,
     // otherwise it silently degrades to plain text matching.
@@ -343,12 +396,13 @@ function AllListings({  user, userProfile }) {
                             <div className="relative flex-1">
                                 <input
                                     type="text"
-                                    placeholder="Search by location..."
+                                    placeholder="Search by college, area, or landmark..."
                                     className="w-full px-4 py-2 border rounded-md"
                                     value={searchTerm}
                                     onChange={handleSearchChange}
-                                    onKeyPress={(e) => {
+                                    onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
+                                            e.preventDefault();
                                             handleSearchSubmit();
                                         }
                                     }}
@@ -361,8 +415,11 @@ function AllListings({  user, userProfile }) {
                                         </p>
                                 )}
 
-                                {showSuggestions && suggestions.length > 0 && (
+                                {showSuggestions && (isFetchingSuggestions || suggestions.length > 0) && (
                                     <ul className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
+                                        {isFetchingSuggestions && suggestions.length === 0 && (
+                                            <li className="px-4 py-2 text-gray-500">Searching…</li>
+                                        )}
                                         {suggestions.map((suggestion, index) => (
                                             <li 
                                                 key={index} 
@@ -425,7 +482,7 @@ function AllListings({  user, userProfile }) {
 
                     {searchLocation && (
                         <div className="mt-3 flex items-center gap-3">
-                            <label className="text-sm text-brand-ink whitespace-nowrap">Within {radiusKm} km</label>
+                            <label className="text-sm text-brand-ink whitespace-nowrap">Within {radiusKm} km <span className="text-brand-ink/50">(great for a campus commute)</span></label>
                             <input type="range" min="5" max="50" step="5" value={radiusKm}
                                 onChange={(e) => setRadiusKm(Number(e.target.value))} className="flex-1" />
                         </div>
@@ -441,11 +498,11 @@ function AllListings({  user, userProfile }) {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                             <span className="text-brand-ink font-medium">
-                                Showing properties within {radiusKm}km of {searchTerm.split(',')[0]}
+                                Showing {activeTab === 'rooms' ? 'rooms' : 'roommates'} within {radiusKm}km of {searchTerm.split(',')[0]}
                             </span>
                         </div>
                         <span className="text-brand-green text-sm">
-                            {displayedProperties.length} found
+                            {activeTab === 'rooms' ? displayedProperties.length : filteredSeekers.length} found
                         </span>
                     </div>
                 )}
@@ -520,11 +577,6 @@ function AllListings({  user, userProfile }) {
                                             lookingFor={property.lookingForGender || 'Any'}
                                             match={matchScore}
                                             avatarUrl={property.imageUrl}
-                                            lat={property.lat}
-                                            lng={property.lng}
-                                            userLocation={userLocation}
-                                            owner={property.owner}
-                                            user={user}
                                             distance={property.distance}
                                         />
                                     );
@@ -552,19 +604,19 @@ function AllListings({  user, userProfile }) {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
                                 <h3 className="text-xl font-semibold text-brand-ink mb-2">No Roommates Found</h3>
-                                <p className="text-gray-500">Try adjusting your filters or check back later!</p>
+                                <p className="text-gray-500">
+                                    {searchLocation
+                                        ? 'Try a different location or increase your search radius.'
+                                        : 'Try adjusting your filters or check back later!'}
+                                </p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2  gap-6">
                                 {filteredSeekers.map((seeker) => {
-                                    let distanceInKm = null;
-                                    if (userLocation && seeker.lat && seeker.lng) {
-                                        const distanceInMeters = getDistance(
-                                            { latitude: userLocation.latitude, longitude: userLocation.longitude },
-                                            { latitude: seeker.lat, longitude: seeker.lng }
-                                        );
-                                        distanceInKm = (distanceInMeters / 1000).toFixed(1);
-                                    }
+                                    const distanceInKm =
+                                        seeker.distance != null && seeker.distance !== Infinity
+                                            ? (seeker.distance / 1000).toFixed(1)
+                                            : null;
 
                                     let matchScore = null;
                                     if (userProfile?.preferences?.length > 0 && seeker.preferences?.length > 0) {

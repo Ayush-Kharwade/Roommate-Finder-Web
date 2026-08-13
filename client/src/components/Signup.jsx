@@ -6,9 +6,7 @@ import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import SEO from './SEO.jsx';
-
-//SEO
-<SEO title="Sign Up" />
+import { Link } from 'react-router-dom';
 
 function Signup() {
   const [name, setName] = useState('');
@@ -23,9 +21,20 @@ function Signup() {
     e.preventDefault();
     setError('');
 
-    // Basic client-side guard before hitting Firebase
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+    // Basic client-side guards before hitting Firebase. Firebase itself only
+    // enforces 6 characters, which is too weak for an account that carries a
+    // phone number and a message history.
+    const trimmedName = name.trim();
+    if (trimmedName.length < 2) {
+      setError('Please enter your name.');
+      return;
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
+    if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+      setError('Password must include at least one letter and one number.');
       return;
     }
 
@@ -36,10 +45,10 @@ function Signup() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       createdUser = userCredential.user;
 
-      await updateProfile(createdUser, { displayName: name });
+      await updateProfile(createdUser, { displayName: trimmedName });
 
       await setDoc(doc(db, 'users', createdUser.uid), {
-        name: name,
+        name: trimmedName,
         email: createdUser.email,
         createdAt: serverTimestamp(),
       });
@@ -80,6 +89,7 @@ function Signup() {
 
   return (
     <div className="container mx-auto p-8 flex justify-center">
+      <SEO title="Sign Up" />
       <form onSubmit={handleSignup} className="w-full max-w-sm bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-4 text-center">Create an Account</h2>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
@@ -113,6 +123,8 @@ function Signup() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 pr-10 border rounded-lg"
               required
+              minLength={8}
+              autoComplete="new-password"
             />
             <button
               type="button"
@@ -131,6 +143,16 @@ function Signup() {
         >
           {isLoading ? 'Creating account...' : 'Sign Up'}
         </button>
+
+        <p className="text-xs text-gray-500 mt-3 text-center">
+          At least 8 characters, including a letter and a number.
+        </p>
+        <p className="text-sm text-center text-gray-500 mt-4">
+          Already have an account?{' '}
+          <Link to="/login" className="text-brand-green font-semibold hover:underline">
+            Log in
+          </Link>
+        </p>
       </form>
     </div>
   );

@@ -22,7 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Secrets. .env.example files are committed as templates; the real ones never are.
 .env
 .env.local
 .env.*.local
 serviceAccountKey.json
+
+# Agent/editor tooling, machine-specific
+.claude/

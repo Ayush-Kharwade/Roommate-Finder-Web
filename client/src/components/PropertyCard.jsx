@@ -1,11 +1,9 @@
 //PropertyCard.jsx
-import React, { useState } from 'react';
-import toast from 'react-hot-toast';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getDistance } from 'geolib'; 
 import { useSavedListings } from '../hooks/useSavedListings';
 
-function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, owner, lat, lng, userLocation, user, distance }) {
+function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, distance }) {
     const navigate = useNavigate();
 
     const { savedIds, toggleSave } = useSavedListings();
@@ -68,14 +66,15 @@ function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, 
                         <span className="text-brand-green font-bold">{match}% Match</span>
                     )}
                     <div className="ml-4 flex space-x-3">
-                        {/* 3. FIX THE BUTTONS */}
-                        <button 
+                        {/* Both shortcuts land on the details page — that's where
+                            chat and contact are wired up against the owner's ID. */}
+                        <button
                             onClick={(e) => {
                                 e.preventDefault(); // Stop navigation
                                 e.stopPropagation(); // Stop click from bubbling to the Link
-                                // Add your chat logic here
-                                toast.success("Chat feature coming soon!");
+                                navigate(`/property/${id}`);
                             }}
+                            aria-label="Chat about this listing"
                             className="text-gray-400 hover:text-gray-600"
                         >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
@@ -85,7 +84,8 @@ function PropertyCard({ id, name, location, rent, lookingFor, match, avatarUrl, 
                                 e.preventDefault(); // Stop navigation
                                 e.stopPropagation(); // Stop click from bubbling to the Link
                                 handleContactClick(); // Run your original function
-                            }} 
+                            }}
+                            aria-label="View contact options"
                             className="text-gray-400 hover:text-gray-600"
                         >
                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>

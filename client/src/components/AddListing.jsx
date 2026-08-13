@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -6,22 +6,10 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import ClipLoader from 'react-spinners/ClipLoader';
 import { uploadMultipleToCloudinary } from '../utils/cloudinary';
+import { validateImages, MAX_LISTING_IMAGES } from '../utils/images';
 import { primaryName, secondaryName, formatAddress } from '../utils/formatAddress';
-
-// Define the options for the form
-const highlightOptions = [
-    'Attached washroom', 'Market nearby', 'Attached balcony', 'Close to metro station',
-    'Public transport nearby', 'Gated society', 'No Restriction', 'Newly built',
-    'Separate washrooms', 'House keeping', 'Park nearby', 'Gym nearby'
-];
-
-const amenityOptions = [
-    { name: 'TV', emoji: '📺' }, { name: 'Fridge', emoji: '🧊' },
-    { name: 'Kitchen', emoji: '🍳' }, { name: 'Wifi', emoji: '📶' },
-    { name: 'Machine', emoji: '🧼' }, { name: 'AC', emoji: '❄️' },
-    { name: 'Powerbackup', emoji: '🔋' }, { name: 'Cook', emoji: '👨‍🍳' },
-    { name: 'Parking', emoji: '🅿️' }
-];
+import { preferenceOptions } from '../constants/preferences';
+import { highlightOptions, amenityOptions } from '../constants/listings';
 
 function AddListing() {
     const navigate = useNavigate();
@@ -33,6 +21,7 @@ function AddListing() {
         occupancy: 'Any',
         highlights: [],
         amenities: [],
+        listingPreferences: [],
         description: '',
         lat: null,
         lng: null,
@@ -46,6 +35,16 @@ function AddListing() {
     const [isLoading, setIsLoading] = useState(false);
     const currentUser = auth.currentUser;
     const [selectedAddress, setSelectedAddress] = useState('');
+
+    // Blob URLs have to be created once per file and released, otherwise every
+    // re-render mints another one that is never freed.
+    const previewUrls = useMemo(
+        () => imageFiles.map(file => URL.createObjectURL(file)),
+        [imageFiles]
+    );
+    useEffect(() => {
+        return () => previewUrls.forEach(URL.revokeObjectURL);
+    }, [previewUrls]);
 
     useEffect(() => {
         if (formData.address === selectedAddress) {
@@ -117,8 +116,10 @@ function AddListing() {
     };
     
     const handleImageChange = (e) => {
-        if (e.target.files.length > 3) {
-            toast.error("You can upload a maximum of 3 photos.");
+        const problem = validateImages(e.target.files, MAX_LISTING_IMAGES);
+        if (problem) {
+            toast.error(problem);
+            e.target.value = ''; // let them re-pick the same file after fixing it
             return;
         }
         setImageFiles(Array.from(e.target.files));
@@ -338,7 +339,7 @@ function AddListing() {
                                         {imageFiles.map((file, i) => (
                                             <div key={i} className="relative">
                                                 <img
-                                                    src={URL.createObjectURL(file)}
+                                                    src={previewUrls[i]}
                                                     alt={`Preview ${i + 1}`}
                                                     className="w-24 h-24 object-cover rounded-lg border"
                                                 />
@@ -397,6 +398,24 @@ function AddListing() {
                                 <button type="button" key={amenity.name} onClick={() => handleTagToggle('amenities', amenity.name)} className={`p-4 flex flex-col items-center gap-2 rounded-lg border-2 transition-colors ${formData.amenities.includes(amenity.name) ? 'border-brand-green bg-brand-sand' : 'border-gray-200'}`}>
                                     <span className="text-3xl">{amenity.emoji}</span>
                                     <span className="text-xs font-medium">{amenity.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Lifestyle preferences — powers the compatibility % match shown to seekers */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Your lifestyle (helps us show a compatibility match)</label>
+                        <div className="flex flex-wrap gap-2">
+                            {preferenceOptions.map(option => (
+                                <button
+                                    type="button"
+                                    key={option.name}
+                                    onClick={() => handleTagToggle('listingPreferences', option.name)}
+                                    className={`flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${formData.listingPreferences.includes(option.name) ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600'}`}
+                                >
+                                    <span className="mr-1.5">{option.emoji}</span>
+                                    {option.name}
                                 </button>
                             ))}
                         </div>

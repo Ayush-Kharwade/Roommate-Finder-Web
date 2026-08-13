@@ -98,17 +98,23 @@ function Home() {
         }
     };
 
+    // Locality names contain commas and can contain & or #, so they have to be
+    // encoded — an unencoded "&" silently truncates the search parameter.
+    const goToListings = (term) => {
+        navigate(`/listings?search=${encodeURIComponent(term)}`);
+    };
+
     const handleSuggestionClick = (suggestion) => {
         setSearchTerm(suggestion);
         setShowSuggestions(false);
-        navigate(`/listings?search=${suggestion}`);
+        goToListings(suggestion);
     };
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         setShowSuggestions(false);
         if (searchTerm.trim()) {
-            navigate(`/listings?search=${searchTerm.trim()}`);
+            goToListings(searchTerm.trim());
         } else {
             navigate('/listings');
         }
@@ -147,7 +153,7 @@ function Home() {
                                 <div className="flex-1 relative">
                                     <input
                                         type="text"
-                                        placeholder="Search by city, locality, or landmark…"
+                                        placeholder="Search by city, college, or landmark…"
                                         className="w-full px-5 py-4 border-none rounded-xl text-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-green text-base"
                                         value={searchTerm}
                                         onChange={handleSearchChange}
@@ -188,7 +194,7 @@ function Home() {
                             {quickSearchCities.map((city) => (
                                 <button
                                     key={city}
-                                    onClick={() => { setSearchTerm(city); navigate(`/listings?search=${city}`); }}
+                                    onClick={() => { setSearchTerm(city); goToListings(city); }}
                                     className="px-4 py-2 bg-white/15 backdrop-blur-sm rounded-full text-sm text-white hover:bg-white/25 transition-colors border border-white/20"
                                 >
                                     {city}
@@ -227,8 +233,8 @@ function Home() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                 </svg>
                             } 
-                            title="Compatibility First" 
-                            description="Filter by lifestyle, budget, and preferences to find people you'll actually get along with." 
+                            title="Compatibility First"
+                            description="See a compatibility % based on lifestyle, sleep schedule, and habits — not just budget and location filters."
                         />
                         <FeatureCard 
                             icon={
@@ -284,12 +290,11 @@ function Home() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {popularCities.map((city) => (
-                            <CityCard 
+                            <CityCard
                                 key={city.name}
                                 name={city.name}
                                 image={city.image}
-                                propertyCount={city.count}
-                                onClick={() => navigate(`/listings?search=${city.name}`)}
+                                onClick={() => goToListings(city.name)}
                             />
                         ))}
                     </div>

@@ -4,32 +4,19 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { db } from '../firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import ClipLoader from "react-spinners/ClipLoader";
 import { getOrCreateChat } from '../utils/chat';
 import ReportButton from './ReportButton.jsx';
-
-// This preference data is still needed
-const preferenceOptions = [
-    { name: 'Night Owl', emoji: '🦉' }, { name: 'Early Bird', emoji: '🐦' },
-    { name: 'Studious', emoji: '📚' }, { name: 'Fitness Freak', emoji: '🏋️' },
-    { name: 'Sporty', emoji: '⚽' }, { name: 'Wanderer', emoji: '🚗' },
-    { name: 'Party Lover', emoji: '🎉' }, { name: 'Pet Lover', emoji: '🐾' },
-    { name: 'Vegan', emoji: '🌱' }, { name: 'Non-Alcoholic', emoji: '💧' },
-    { name: 'Music Lover', emoji: '🎵' }, { name: 'Non Smoker', emoji: '🚭' },
-];
-
-const seekerHighlights = [
-    'Working Professional', 'Student', 'Early Riser',
-    'Night Owl', 'Clean & Tidy', 'Social', 'Quiet',
-    'Non-Smoker', 'Pet Friendly', 'Vegetarian'
-];
+import { preferenceOptions } from '../constants/preferences';
+import { seekerHighlightOptions } from '../constants/listings';
 
 function SeekerDetails({ user }) {
     const { id } = useParams();
     const navigate = useNavigate();
     const [seeker, setSeeker] = useState(null);
     const [loading, setLoading] = useState(true);
+    const isOwnProfile = !!user && user.uid === id;
 
     // This data fetching logic is correct and does not need to change
     useEffect(() => {
@@ -62,14 +49,16 @@ function SeekerDetails({ user }) {
 
     const handleChat = async () => {
         if (!user) return toast.error("Please log in to start a chat.");
-        if (!seeker?.id) return toast.error("Seeker information is not available.");
-        if (user.uid === seeker.id) return toast.error("You cannot start a chat with yourself.");
+        // seeker.id is the document ID, which only equals the uid on profiles
+        // created after the switch to setDoc. userId is the reliable owner.
+        if (!seeker?.userId) return toast.error("Seeker information is not available.");
+        if (user.uid === seeker.userId) return toast.error("You cannot start a chat with yourself.");
 
         try {
             const chatId = await getOrCreateChat({
                 currentUser: user,
                 otherUser: {
-                    uid: seeker.id,
+                    uid: seeker.userId,
                     name: seeker.name,
                     photoUrl: seeker.profilePicUrl,
                 },
@@ -84,6 +73,21 @@ function SeekerDetails({ user }) {
     
     const handleContactClick = () => {
         toast.error("Contact information is private. Please use the chat feature to connect.");
+    };
+
+    const handleDelete = async () => {
+        if (!window.confirm(
+            'Remove your roommate profile? It will stop appearing in search straight away.'
+        )) return;
+
+        try {
+            await deleteDoc(doc(db, 'seekers', seeker.id));
+            toast.success('Your profile has been removed.');
+            navigate('/my-listings');
+        } catch (err) {
+            console.error('Failed to delete seeker profile:', err);
+            toast.error('Could not remove your profile.');
+        }
     };
 
     if (loading) {
@@ -102,8 +106,8 @@ function SeekerDetails({ user }) {
         return preferenceOptions.find(opt => opt.name === prefName);
     }).filter(Boolean);
 
-    const displayedHighlights = seeker.highlights 
-        ? seekerHighlights.filter(h => seeker.highlights.includes(h))
+    const displayedHighlights = seeker.highlights
+        ? seekerHighlightOptions.filter(h => seeker.highlights.includes(h))
         : [];
 
     
@@ -124,7 +128,7 @@ function SeekerDetails({ user }) {
                     <div className="lg:col-span-1 space-y-6">
                         <div className="bg-white rounded-xl shadow-md p-6 text-center">
                             <img 
-                                src={seeker.profilePicUrl || `https://ui-avatars.com/api/?name=${seeker.name.replace(/\s/g, '+')}&background=random&size=128`} 
+                                src={seeker.profilePicUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(seeker.name || 'User')}&background=random&size=128`}
                                 alt={seeker.name} 
                                 className="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-gray-100 shadow-sm"
                             />
@@ -134,26 +138,44 @@ function SeekerDetails({ user }) {
                                 {seeker.city}
                             </p>
                             
-                            <div className="mt-6 flex gap-4">
-                                <button 
-                                    onClick={handleChat}
-                                    className="flex-1 bg-brand-green text-white font-semibold py-3 rounded-lg hover:bg-brand-green-dark transition-colors"
-                                >
-                                    Chat
-                                </button>
-                                <button 
-                                    onClick={handleContactClick}
-                                    className="flex-1 border-2 border-brand-green text-brand-green font-semibold py-3 rounded-lg hover:bg-brand-cream transition-colors"
-                                >
-                                    Call
-                                </button>
-                            </div>
+                            {isOwnProfile ? (
+                                // Your own profile: manage it, don't message yourself.
+                                <div className="mt-6 space-y-3">
+                                    <button
+                                        onClick={() => navigate('/add-seeker-profile')}
+                                        className="w-full bg-yellow-500 text-white font-semibold py-3 rounded-lg hover:bg-yellow-600 transition-colors"
+                                    >
+                                        Edit Profile
+                                    </button>
+                                    <button
+                                        onClick={handleDelete}
+                                        className="w-full bg-red-500 text-white font-semibold py-3 rounded-lg hover:bg-red-600 transition-colors"
+                                    >
+                                        Remove Profile
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="mt-6 flex gap-4">
+                                    <button
+                                        onClick={handleChat}
+                                        className="flex-1 bg-brand-green text-white font-semibold py-3 rounded-lg hover:bg-brand-green-dark transition-colors"
+                                    >
+                                        Chat
+                                    </button>
+                                    <button
+                                        onClick={handleContactClick}
+                                        className="flex-1 border-2 border-brand-green text-brand-green font-semibold py-3 rounded-lg hover:bg-brand-cream transition-colors"
+                                    >
+                                        Call
+                                    </button>
+                                </div>
+                            )}
                             <div className="mt-4 pt-4 border-t border-brand-sand flex justify-center">
                                 <ReportButton
                                     targetType="seeker"
                                     targetId={seeker.id}
                                     targetTitle={seeker.name}
-                                    targetOwnerId={seeker.id}
+                                    targetOwnerId={seeker.userId}
                                 />
                             </div>
                         </div>
@@ -175,7 +197,7 @@ function SeekerDetails({ user }) {
                                 </div>
                                 <div>
                                     <span className="text-gray-500">Occupancy</span>
-                                    <p className="font-semibold text-gray-900">Single</p>
+                                    <p className="font-semibold text-gray-900">{seeker.occupancy || 'Single'}</p>
                                 </div>
                                 <div>
                                     <span className="text-gray-500">Looking For</span>

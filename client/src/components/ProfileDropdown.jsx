@@ -17,8 +17,8 @@ function ProfileDropdown({ user, userProfile, handleLogout, unreadCount, unreadN
 
   if (!user) return null;
 
-  const greetingName = userProfile?.name || user.displayName || user.email;
-  const avatarSrc = userProfile?.profilePicUrl || `https://ui-avatars.com/api/?name=${greetingName.replace(/\s/g, '+')}&background=random`;
+  const greetingName = userProfile?.name || user.displayName || user.email || 'User';
+  const avatarSrc = userProfile?.profilePicUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(greetingName)}&background=random`;
 
   return (
     <div className="relative" ref={dropdownRef}>

@@ -1,30 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { db, auth } from '../firebase';
-import { doc, getDoc, collection, addDoc, query, getDocs, serverTimestamp, orderBy, deleteDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { doc, getDoc, deleteDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import ClipLoader from 'react-spinners/ClipLoader';
 import SEO from './SEO.jsx';
 import { getOrCreateChat } from '../utils/chat';
 import ReportButton from './ReportButton.jsx';
+import { preferenceOptions } from '../constants/preferences';
+import { highlightOptions } from '../constants/listings';
 
-const preferenceOptions = [
-    { name: 'Night Owl', emoji: '🦉' }, { name: 'Early Bird', emoji: '🐦' },
-    { name: 'Studious', emoji: '📚' }, { name: 'Fitness Freak', emoji: '🏋️' },
-    { name: 'Sporty', emoji: '⚽' }, { name: 'Wanderer', emoji: '🚗' },
-    { name: 'Party Lover', emoji: '🎉' }, { name: 'Pet Lover', emoji: '🐾' },
-    { name: 'Vegan', emoji: '🌱' }, { name: 'Non-Alcoholic', emoji: '💧' },
-    { name: 'Music Lover', emoji: '🎵' }, { name: 'Non Smoker', emoji: '🚭' },
-];
-
-// Sample highlights - you can customize these based on your property data structure
-const highlightsList = [
-    'Attached washroom', 'Market nearby', 'Attached balcony', 'Close to metro station',
-    'Public transport nearby', 'Gated society', 'No Restriction', 'Newly built',
-    'Separate washrooms', 'House keeping', 'Park nearby', 'Gym nearby'
-];
-
-function PropertyDetails({ properties, user }) {
+function PropertyDetails({ user }) {
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -81,7 +67,7 @@ function PropertyDetails({ properties, user }) {
         try {
             await deleteDoc(doc(db, 'properties', property.id));
             toast.success('Listing deleted.');
-            navigate(`/profile/${user.uid}`);
+            navigate('/my-listings');
         } catch (err) {
             console.error('Delete failed:', err);
             toast.error('Could not delete listing.');
@@ -177,7 +163,7 @@ function PropertyDetails({ properties, user }) {
                         {property.ownerId && (
                             <div className="bg-white rounded-xl shadow-md p-6 text-center">
                                 <img
-                                    src={property.ownerPhotoUrl || `https://ui-avatars.com/api/?name=${(property.ownerName || 'User').replace(/\s/g, '+')}&background=random`}
+                                    src={property.ownerPhotoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(property.ownerName || 'User')}&background=random`}
                                     alt={property.ownerName || 'Owner'}
                                     className="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-4 border-gray-100"
                                 />
@@ -271,7 +257,7 @@ function PropertyDetails({ properties, user }) {
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-gray-500">Occupancy</span>
-                                    <span className="font-semibold text-gray-900">{property.vacancies || 'Any'}</span>
+                                    <span className="font-semibold text-gray-900">{property.occupancy || 'Any'}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-gray-500">Looking For</span>
@@ -361,20 +347,22 @@ function PropertyDetails({ properties, user }) {
                             </div>
                         )}
 
-                        {/* Highlights */}
-                        <div className="bg-white rounded-xl shadow-md p-6">
-                            <h2 className="text-xl font-bold mb-4">Highlights</h2>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                {highlightsList.map((highlight) => (
-                                    <div key={highlight} className="flex items-center gap-2 text-sm">
-                                        <svg className="w-4 h-4 text-brand-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                        </svg>
-                                        <span className="text-gray-700">{highlight}</span>
-                                    </div>
-                                ))}
+                        {/* Highlights — only the ones this owner actually picked */}
+                        {property.highlights?.length > 0 && (
+                            <div className="bg-white rounded-xl shadow-md p-6">
+                                <h2 className="text-xl font-bold mb-4">Highlights</h2>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    {highlightOptions.filter(h => property.highlights.includes(h)).map((highlight) => (
+                                        <div key={highlight} className="flex items-center gap-2 text-sm">
+                                            <svg className="w-4 h-4 text-brand-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                            </svg>
+                                            <span className="text-gray-700">{highlight}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Amenities */}
                         <div className="bg-white rounded-xl shadow-md p-6">
@@ -407,12 +395,6 @@ function PropertyDetails({ properties, user }) {
                             )}
                         </div>
 
-                        {/* Report Section */}
-                        <div className="text-center py-4">
-                            <button className="text-gray-500 text-sm hover:text-gray-700">
-                                Found wrong information? <span className="text-brand-green font-semibold">Report Listing</span>
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>

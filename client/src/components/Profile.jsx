@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { db, auth, storage } from '../firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import toast from 'react-hot-toast';
+import { validateImage, ALLOWED_IMAGE_TYPES } from '../utils/images';
 
 function Profile() {
     const { userId } = useParams();
@@ -41,9 +42,16 @@ function Profile() {
 
     // ---- HANDLERS ----
     const handleImageChange = (e) => {
-        if (e.target.files[0]) {
-            setImageFile(e.target.files[0]);
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const problem = validateImage(file);
+        if (problem) {
+            toast.error(problem);
+            e.target.value = '';
+            return;
         }
+        setImageFile(file);
     };
 
     const handleSaveChanges = async (e) => {
@@ -68,7 +76,9 @@ function Profile() {
                 setProfileData(prev => ({ ...prev, profilePicUrl: newProfilePicUrl }));
             }
 
-            await updateDoc(userDocRef, updatedData);
+            // merge, not updateDoc: accounts created before the users document
+            // existed would otherwise fail with "No document to update".
+            await setDoc(userDocRef, updatedData, { merge: true });
 
             toast.dismiss(loadingToast);
             toast.success("Profile updated successfully!");
@@ -100,7 +110,7 @@ function Profile() {
                         {isOwnProfile && (
                             <label className="cursor-pointer bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md text-sm font-semibold">
                                 Change Picture
-                                <input type="file" onChange={handleImageChange} className="hidden" accept="image/*" />
+                                <input type="file" onChange={handleImageChange} className="hidden" accept={ALLOWED_IMAGE_TYPES.join(',')} />
                             </label>
                         )}
                     </div>
@@ -117,17 +127,22 @@ function Profile() {
                                 className="w-full mt-1 px-4 py-2 border rounded-lg disabled:bg-gray-100"
                             />
                         </div>
-                        <div>
-                            <label className="block text-gray-700 font-semibold">Contact Number</label>
-                            <input
-                                type="tel"
-                                name="contactNumber"
-                                value={profileData.contactNumber || ''}
-                                onChange={(e) => setProfileData({ ...profileData, contactNumber: e.target.value })}
-                                disabled={!isOwnProfile}
-                                className="w-full mt-1 px-4 py-2 border rounded-lg disabled:bg-gray-100"
-                            />
-                        </div>
+                        {/* A phone number is only ever shown to its owner here.
+                            Other people reach it through the gated "Call" button
+                            on a listing, which is the one place it's meant to
+                            surface — not on every profile URL. */}
+                        {isOwnProfile && (
+                            <div>
+                                <label className="block text-gray-700 font-semibold">Contact Number</label>
+                                <input
+                                    type="tel"
+                                    name="contactNumber"
+                                    value={profileData.contactNumber || ''}
+                                    onChange={(e) => setProfileData({ ...profileData, contactNumber: e.target.value })}
+                                    className="w-full mt-1 px-4 py-2 border rounded-lg"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <div className="mb-6">
