@@ -2,14 +2,19 @@
 
 Find rooms, PGs and compatible flatmates across India — no brokers.
 
-A React + Vite front end talking directly to Firebase (Auth, Firestore, Storage),
-with Cloudinary for listing photos and OpenCage for geocoding.
+A React + Vite front end talking directly to Firebase (Auth + Firestore), with
+Cloudinary for all images and OpenCage for geocoding.
 
 ```
 client/     React app — this is the deployable front end
 server/     Express + MongoDB stub (see "About server/" below)
-firestore.rules, storage.rules, firestore.indexes.json, firebase.json
+firestore.rules, firestore.indexes.json, firebase.json
 ```
+
+**Runs entirely on Firebase's free Spark plan.** Cloud Storage for Firebase is
+deliberately not used — it requires the paid Blaze plan on projects created
+after October 2024. Listing photos *and* profile pictures both upload to
+Cloudinary, so there is one image path and no card on file.
 
 ## Running locally
 
@@ -51,7 +56,7 @@ client-side Firebase app, so without rules the database is world-writable.
 npm install -g firebase-tools
 firebase login
 firebase use --add            # select your Firebase project
-firebase deploy --only firestore:rules,firestore:indexes,storage
+firebase deploy --only firestore:rules,firestore:indexes
 ```
 
 Then confirm in the Firebase console that Firestore is **not** in test mode
@@ -71,6 +76,9 @@ Verify the two rules that matter most, from a signed-in browser console:
   bundle can upload to your account. In Settings → Upload → Upload presets,
   restrict it to: images only, max 2 MB, formats `png,jpg,webp`, and set the
   allowed origins to your domain. Consider enabling a moderation queue.
+  This is now the **only** upload path in the app — listing photos and profile
+  pictures both — so the preset is the sole enforced limit on what lands in your
+  account. Treat it as a required step, not a nice-to-have.
 - **OpenCage** — restrict the key to your production domain and set a daily cap.
   It is in the bundle and is billable per request.
 - **Firebase web API key** — in Google Cloud console → APIs & Services →
@@ -85,11 +93,15 @@ Verify the two rules that matter most, from a signed-in browser console:
   domain, remove any you do not control.
 - **Authentication → Templates**: customise the password-reset email (the login
   page now sends these).
-- **App Check**: strongly recommended. Register the site with reCAPTCHA
-  Enterprise and enforce App Check on Firestore and Storage — this is what stops
-  someone scripting the public `properties` and `seekers` collections.
-- **Budget alerts**: set one on the Firebase/GCP billing account. Public reads
-  on `properties` are unmetered by the rules.
+- **App Check**: strongly recommended, and free. Register the site with
+  **reCAPTCHA v3** — *not* reCAPTCHA Enterprise, which needs a billing account —
+  then enforce App Check on Firestore. This is what stops someone scripting the
+  public `properties` and `seekers` collections. Run it in monitoring mode for a
+  day before enforcing.
+- **Usage**: on the Spark plan there is no billing account to budget against, so
+  watch **Firestore → Usage** instead. The free daily ceiling is 50k reads /
+  20k writes; public listing browsing is what will consume it first. Firestore
+  simply stops serving when the quota is hit rather than charging you.
 
 ## 4. Grant yourself admin
 

@@ -20,7 +20,7 @@ export default defineConfig({
         // big vendors out means a repeat visitor re-downloads only app code
         // when it changes — worth real seconds on a mobile connection.
         manualChunks: {
-          'vendor-firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth', 'firebase/storage'],
+          'vendor-firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth'],
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
         },
       },

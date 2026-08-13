@@ -1,8 +1,9 @@
 // Client-side image guards.
 //
 // These are a courtesy to the user, not a security boundary — anyone can call
-// the upload endpoints directly. The real limits live in storage.rules and in
-// the Cloudinary upload preset. Keep the three in sync.
+// the upload endpoint directly. Every image in this app goes to Cloudinary via
+// an unsigned preset, so the *enforced* limits are the ones configured on that
+// preset in the Cloudinary dashboard. Keep the two in sync.
 
 export const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2 MB
 export const MAX_LISTING_IMAGES = 3;

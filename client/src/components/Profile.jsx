@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { db, auth, storage } from '../firebase';
+import { db, auth } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import toast from 'react-hot-toast';
+import { uploadToCloudinary } from '../utils/cloudinary';
 import { validateImage, ALLOWED_IMAGE_TYPES } from '../utils/images';
 
 function Profile() {
@@ -69,9 +69,10 @@ function Profile() {
             };
 
             if (imageFile) {
-                const imageRef = ref(storage, `profile-pics/${userId}`);
-                await uploadBytes(imageRef, imageFile);
-                const newProfilePicUrl = await getDownloadURL(imageRef);
+                // Cloudinary, not Firebase Storage — Storage requires the Blaze
+                // plan on new projects, and listing photos already go here, so
+                // this keeps the whole app on the free tier with one uploader.
+                const newProfilePicUrl = await uploadToCloudinary(imageFile);
                 updatedData.profilePicUrl = newProfilePicUrl;
                 setProfileData(prev => ({ ...prev, profilePicUrl: newProfilePicUrl }));
             }
