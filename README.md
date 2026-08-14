@@ -91,8 +91,10 @@ Verify the two rules that matter most, from a signed-in browser console:
 
 - **Authentication → Settings → Authorized domains**: add your production
   domain, remove any you do not control.
-- **Authentication → Templates**: customise the password-reset email (the login
-  page now sends these).
+- **Authentication → Templates**: customise the **password reset** and **email
+  address verification** templates. Both are sent by the app now, and the
+  defaults name the raw Firebase project, which reads as a phishing attempt to
+  a new user.
 - **App Check**: strongly recommended, and free. Register the site with
   **reCAPTCHA v3** — *not* reCAPTCHA Enterprise, which needs a billing account —
   then enforce App Check on Firestore. This is what stops someone scripting the
@@ -143,8 +145,12 @@ reproduce two things yourself — neither is automatic:
 
 Not bugs, but worth deciding on before a wide launch:
 
-- **No email verification.** Anyone can sign up with an address they do not own.
-  Consider gating listing creation behind `emailVerified`.
+- **Verification gates creation, not editing.** Posting a room or a new roommate
+  profile requires a confirmed email, enforced both in the UI and in
+  `firestore.rules` via `request.auth.token.email_verified`. Editing and deleting
+  are deliberately left open so members who signed up before this existed can
+  still fix or take down what they posted. If you would rather they were locked
+  out too, add `isVerified()` to the `update` rules as well.
 - **Deleting a listing leaves its photos in Cloudinary** and does not clean up
   saves, chats or notifications that reference it. Fine at small scale; needs a
   Cloud Function later.

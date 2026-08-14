@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase'; 
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from 'firebase/auth';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -53,7 +53,16 @@ function Signup() {
         createdAt: serverTimestamp(),
       });
 
-      toast.success('Successfully signed up!');
+      // Deliberately outside the outer try: a mail-delivery hiccup must not
+      // trigger the rollback below and delete a perfectly good account. The
+      // user can resend from the verify screen.
+      try {
+        await sendEmailVerification(createdUser);
+      } catch (verifyErr) {
+        console.error('Could not send verification email:', verifyErr);
+      }
+
+      toast.success('Account created — check your email to verify it.');
       navigate('/');
     } catch (err) {
       // If the Auth account was created but a later step failed,

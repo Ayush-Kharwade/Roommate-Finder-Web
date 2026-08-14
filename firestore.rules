@@ -21,6 +21,13 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    // Gates the creation of public content. Applied to `create` only, never to
+    // `update` or `delete`: members who signed up before verification existed
+    // must still be able to edit and take down what they already posted.
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
     function isAdmin() {
       return isSignedIn()
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
@@ -67,7 +74,7 @@ service cloud.firestore {
     match /properties/{propertyId} {
       allow read: if true;
 
-      allow create: if isSignedIn()
+      allow create: if isVerified()
                     && request.resource.data.ownerId == request.auth.uid
                     && request.resource.data.title is string
                     && request.resource.data.title.size() > 0
@@ -106,6 +113,7 @@ service cloud.firestore {
       allow read: if true;
 
       allow create: if isSelf(seekerId)
+                    && isVerified()
                     && request.resource.data.userId == request.auth.uid
                     && !('email' in request.resource.data)
                     && !('contactNumber' in request.resource.data)

@@ -8,6 +8,7 @@ import ClipLoader from 'react-spinners/ClipLoader';
 import { primaryName, secondaryName, formatAddress } from '../utils/formatAddress';
 import { preferenceOptions } from '../constants/preferences';
 import { seekerHighlightOptions } from '../constants/listings';
+import VerifyEmailNotice from './VerifyEmailNotice.jsx';
 
 function AddSeekerProfile() {
     const navigate = useNavigate();
@@ -221,6 +222,13 @@ function AddSeekerProfile() {
                 <ClipLoader color="#1B4D3E" size={40} />
             </div>
         );
+    }
+
+    // Creating a public profile needs a confirmed email; editing one you already
+    // have does not. That split has to happen here rather than on the route,
+    // because this one screen does both.
+    if (!isExisting && !auth.currentUser?.emailVerified) {
+        return <VerifyEmailNotice />;
     }
 
     return (

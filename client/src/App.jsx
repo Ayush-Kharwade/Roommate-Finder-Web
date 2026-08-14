@@ -75,10 +75,16 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/seeker/:id" element={<SeekerDetails  user={user} />} />
         
-        <Route path="/add-listing" element={<ProtectedRoute user={user}><AddListing /></ProtectedRoute>} />
+        {/* Posting something new requires a confirmed email — these are the
+            screens that put a phone number in front of strangers. Browsing,
+            saving and chat don't. Editing isn't gated either: anyone who posted
+            before verification existed must still be able to fix or remove it,
+            which is also how firestore.rules is written. AddSeekerProfile is
+            create and edit in one screen, so it makes that call internally. */}
+        <Route path="/add-listing" element={<ProtectedRoute user={user} requireVerified><AddListing /></ProtectedRoute>} />
         <Route path="/edit-listing/:id" element={<ProtectedRoute user={user}><EditListing /></ProtectedRoute>} />
         <Route path="/add-seeker-profile" element={<ProtectedRoute user={user}><AddSeekerProfile /></ProtectedRoute>} />
-        <Route path="/listing-choice" element={<ProtectedRoute user={user}><ListingChoice /></ProtectedRoute>} />
+        <Route path="/listing-choice" element={<ProtectedRoute user={user} requireVerified><ListingChoice /></ProtectedRoute>} />
         <Route path="/preferences" element={<ProtectedRoute user={user}><Preferences /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute user={user}><Notifications /></ProtectedRoute>} />
         <Route path="/profile/:userId" element={<ProtectedRoute user={user}><Profile /></ProtectedRoute>} />
